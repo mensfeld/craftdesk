@@ -9,24 +9,6 @@ The official command-line interface for managing CraftDesk AI capabilities. Simi
 
 ---
 
-## Table of Contents
-
-- [What is CraftDesk?](#what-is-craftdesk)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Core Concepts](#core-concepts)
-- [Command Reference](#command-reference)
-- [Dependency Sources](#dependency-sources)
-- [Multi-Registry Setup](#multi-registry-setup)
-- [Monorepo Support](#monorepo-support)
-- [craftdesk.json Reference](#craftdeskjson-reference)
-- [craftdesk.lock](#craftdesklock)
-- [CI/CD Integration](#cicd-integration)
-- [Troubleshooting](#troubleshooting)
-- [Development](#development)
-
----
-
 ## What is CraftDesk?
 
 CraftDesk is a package manager for AI capabilities used in Claude Code and other AI development environments. It allows you to:
@@ -47,7 +29,9 @@ Think of it as:
 
 ---
 
-## Installation
+## Quick Start
+
+### Install CraftDesk
 
 ```bash
 npm install -g craftdesk
@@ -59,17 +43,7 @@ craftdesk --version
 # 0.2.0
 ```
 
-### Requirements
-
-- Node.js >= 18.0.0
-- Git (for git dependencies)
-- npm or yarn
-
-> **For contributors:** See the [Development](#development) section below for building from source.
-
----
-
-## Quick Start
+**Requirements:** Node.js >= 18.0.0, Git, npm or yarn
 
 ### 1. Initialize a New Project
 
@@ -129,6 +103,22 @@ Installed crafts:
 
 Total: 2 crafts installed
 ```
+
+---
+
+## Table of Contents
+
+- [What is CraftDesk?](#what-is-craftdesk)
+- [Quick Start](#quick-start)
+- [Core Concepts](#core-concepts)
+- [Command Reference](#command-reference)
+- [Dependency Sources](#dependency-sources)
+- [Monorepo Support](#monorepo-support)
+- [craftdesk.json Reference](#craftdeskjson-reference)
+- [craftdesk.lock](#craftdesklock)
+- [CI/CD Integration](#cicd-integration)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
 
 ---
 
