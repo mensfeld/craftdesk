@@ -184,8 +184,10 @@ By default, crafts install to `.claude/` in your project:
 │   └── code-reviewer/
 ├── commands/
 │   └── deploy/
-└── hooks/
-    └── pre-commit/
+├── hooks/
+│   └── pre-commit/
+└── plugins/
+    └── mcp-server/
 ```
 
 ---

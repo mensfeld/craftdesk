@@ -1,7 +1,7 @@
 {
   "name": "craftdesk",
   "version": "0.3.0",
-  "description": "Package manager for Claude Code skills and agents",
+  "description": "Package manager for Claude Code skills, agents, commands, hooks, and plugins",
   "main": "dist/index.js",
   "bin": {
     "craftdesk": "./bin/craftdesk.js"
