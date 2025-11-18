@@ -1,0 +1,40 @@
+{
+  "name": "my-enterprise-project",
+  "version": "1.0.0",
+  "type": "skill",
+  "description": "Enterprise project with multiple registries",
+  "author": "Your Company",
+
+  "dependencies": {
+    "ruby-on-rails": "^7.0.0",
+    "postgres-expert": "~1.2.0",
+    "@company/auth-handler": {
+      "version": "^3.0.0",
+      "registry": "company-private"
+    },
+    "special-tool": {
+      "version": "^2.0.0",
+      "registry": "https://tools.example.com"
+    },
+    "@partner/analytics": "^1.5.0"
+  },
+
+  "devDependencies": {
+    "code-reviewer": "^2.0.0",
+    "@company/test-suite": {
+      "version": "^1.0.0",
+      "registry": "company-private"
+    }
+  },
+
+  "registries": {
+    "company-private": {
+      "url": "https://registry.internal.mycompany.com",
+      "scope": "@company"
+    },
+    "partner": {
+      "url": "https://api.partner.com/registry",
+      "scope": "@partner"
+    }
+  }
+}

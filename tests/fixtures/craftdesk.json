@@ -1,0 +1,15 @@
+{
+  "name": "test-project",
+  "version": "1.0.0",
+  "type": "skill",
+  "description": "Test project for unit tests",
+  "dependencies": {
+    "ruby-on-rails": "^7.0.0",
+    "postgres-expert": "^1.0.0"
+  },
+  "registries": {
+    "default": {
+      "url": "https://craftdesk.ai"
+    }
+  }
+}

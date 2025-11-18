@@ -1,0 +1,49 @@
+{
+  "name": "my-enterprise-project",
+  "version": "1.0.0",
+  "type": "skill",
+  "description": "Enterprise project with multiple registries",
+  "author": "Your Company",
+
+  "dependencies": {
+    // Simple dependencies use default registry or scope-based routing
+    "ruby-on-rails": "^7.0.0",
+    "postgres-expert": "~1.2.0",
+
+    // Dependency with inline registry specification
+    "@company/auth-handler": {
+      "version": "^3.0.0",
+      "registry": "company-private"  // References registry defined below
+    },
+
+    // Direct URL registry specification
+    "special-tool": {
+      "version": "^2.0.0",
+      "registry": "https://tools.example.com"
+    },
+
+    // Scoped packages automatically use their scope's registry if configured
+    "@partner/analytics": "^1.5.0"  // Will use partner registry defined below
+  },
+
+  "devDependencies": {
+    "code-reviewer": "^2.0.0",
+    "@company/test-suite": {
+      "version": "^1.0.0",
+      "registry": "company-private"
+    }
+  },
+
+  // Registry configuration (all in one file!)
+  "registries": {
+    // Named registries
+    "company-private": {
+      "url": "https://registry.internal.mycompany.com",
+      "scope": "@company"  // All @company/* packages will use this registry
+    },
+    "partner": {
+      "url": "https://api.partner.com/registry",
+      "scope": "@partner"  // All @partner/* packages will use this registry
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "type": "skill",
+  "description": "A simple project with default registry",
+  "dependencies": {
+    "ruby-on-rails": "^7.0.0",
+    "postgres-expert": "^1.2.0"
+  }
+}

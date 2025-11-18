@@ -1,0 +1,41 @@
+{
+  "name": "monorepo-example",
+  "version": "1.0.0",
+  "type": "skill",
+  "description": "Example using git monorepo with multiple crafts",
+
+  "dependencies": {
+    "auth-handler": {
+      "git": "https://github.com/company/ai-crafts-monorepo.git",
+      "tag": "v3.2.0",
+      "path": "skills/auth"
+    },
+    "data-processor": {
+      "git": "https://github.com/company/ai-crafts-monorepo.git",
+      "tag": "v3.2.0",
+      "path": "agents/data-processor"
+    },
+    "report-generator": {
+      "git": "https://github.com/company/ai-crafts-monorepo.git",
+      "tag": "v3.2.0",
+      "path": "skills/reporting"
+    },
+    "test-runner": {
+      "git": "https://github.com/company/ai-crafts-monorepo.git",
+      "tag": "v3.2.0",
+      "path": "commands/test"
+    },
+    "pre-commit-hook": {
+      "git": "https://github.com/company/ai-crafts-monorepo.git",
+      "tag": "v3.2.0",
+      "path": "hooks/pre-commit"
+    },
+    "ruby-on-rails": "^7.0.0"
+  },
+
+  "registries": {
+    "default": {
+      "url": "https://craftdesk.ai"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "git-test-project",
+  "version": "1.0.0",
+  "type": "skill",
+  "description": "Test project with git dependencies",
+  "dependencies": {
+    "custom-auth": {
+      "git": "https://github.com/company/auth.git",
+      "branch": "main"
+    },
+    "monorepo-skill": {
+      "git": "https://github.com/company/monorepo.git",
+      "tag": "v3.0.0",
+      "path": "skills/auth"
+    }
+  }
+}
