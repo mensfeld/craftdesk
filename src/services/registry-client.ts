@@ -16,14 +16,18 @@ export interface CraftInfo {
   integrity?: string;
 }
 
+export interface UserInfo {
+  username: string;
+  email: string;
+  organization?: string;
+}
+
 export interface ResolveResponse {
   resolved: Record<string, any>;
   lockfile: any;
 }
 
 export class RegistryClient {
-  private axiosInstance: AxiosInstance | null = null;
-
   private async getClient(registryUrl: string): Promise<AxiosInstance> {
     const token = await configManager.getAuthToken(registryUrl);
 
@@ -40,7 +44,7 @@ export class RegistryClient {
   async getCraftInfo(craftName: string, version?: string, registryOverride?: string): Promise<CraftInfo | null> {
     // Get registry URL - can be overridden by dependency-specific registry
     const registryUrl = registryOverride
-      ? await this.resolveRegistry(registryOverride)
+      ? await configManager.resolveRegistryUrl(registryOverride)
       : await configManager.getRegistryForCraft(craftName);
 
     const client = await this.getClient(registryUrl);
@@ -65,22 +69,6 @@ export class RegistryClient {
       }
       return null;
     }
-  }
-
-  private async resolveRegistry(registry: string): Promise<string> {
-    // If it's a URL, use it directly
-    if (registry.startsWith('http://') || registry.startsWith('https://')) {
-      return registry;
-    }
-
-    // Look it up in the craftdesk.json registries section
-    const craftDeskJson = await configManager.getCraftDeskJson();
-    if (craftDeskJson?.registries?.[registry]) {
-      return craftDeskJson.registries[registry].url;
-    }
-
-    // If not found, assume it's a URL without protocol
-    return `https://${registry}`;
   }
 
   async listVersions(craftName: string): Promise<string[]> {
@@ -188,6 +176,115 @@ export class RegistryClient {
     } catch (error: any) {
       logger.error(`Failed to search crafts: ${error.message}`);
       return [];
+    }
+  }
+
+  /**
+   * Create a new version for a craft
+   */
+  async createVersion(
+    author: string,
+    name: string,
+    data: {
+      version: string;
+      type?: string;
+      description?: string;
+      main_file?: string;
+      changelog?: string;
+      files: Array<{ path: string; content: string }>;
+    }
+  ): Promise<any> {
+    const registryUrl = await configManager.getDefaultRegistry();
+    if (!registryUrl) {
+      throw new Error('No registry configured. Add a registry to craftdesk.json first.');
+    }
+
+    const client = await this.getClient(registryUrl);
+
+    try {
+      logger.debug(`Creating version ${data.version} for ${author}/${name}`);
+
+      const response = await client.post(
+        `/api/v1/crafts/${author}/${name}/versions`,
+        data
+      );
+
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        throw new Error('Authentication required. Run "craftdesk login" first.');
+      } else if (error.response?.status === 403) {
+        throw new Error('Not authorized to publish to this craft.');
+      } else if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(`Failed to create version: ${error.message}`);
+    }
+  }
+
+  /**
+   * Publish a craft (change status to published)
+   */
+  async publishCraft(
+    author: string,
+    name: string,
+    options: { visibility?: 'public' | 'private' | 'organization' }
+  ): Promise<any> {
+    const registryUrl = await configManager.getDefaultRegistry();
+    if (!registryUrl) {
+      throw new Error('No registry configured. Add a registry to craftdesk.json first.');
+    }
+
+    const client = await this.getClient(registryUrl);
+
+    try {
+      logger.debug(`Publishing ${author}/${name} with visibility: ${options.visibility || 'public'}`);
+
+      const response = await client.patch(
+        `/api/v1/crafts/${author}/${name}/publish`,
+        options
+      );
+
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        throw new Error('Authentication required. Run "craftdesk login" first.');
+      } else if (error.response?.status === 403) {
+        throw new Error('Not authorized to publish this craft.');
+      } else if (error.response?.status === 404) {
+        throw new Error('Craft not found.');
+      } else if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error(`Failed to publish craft: ${error.message}`);
+    }
+  }
+
+  /**
+   * Verify an API token with a registry
+   * Calls GET /api/v1/me to validate the token and get user info
+   *
+   * @param registryUrl - The URL of the registry
+   * @param token - The API token to verify
+   * @returns User info if token is valid
+   * @throws Error if token is invalid or network error occurs
+   */
+  async verifyToken(registryUrl: string, token: string): Promise<UserInfo> {
+    try {
+      const response = await axios.get(`${registryUrl}/api/v1/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        throw new Error('Invalid or expired token');
+      }
+      throw new Error(`Failed to verify token: ${error.message}`);
     }
   }
 

@@ -4,9 +4,11 @@ import axios from 'axios';
 import AdmZip from 'adm-zip';
 import { logger } from '../utils/logger';
 import { configManager } from './config-manager';
+import { settingsManager } from './settings-manager';
 import { CraftDeskLock, LockEntry } from '../types/craftdesk-lock';
 import { ensureDir } from '../utils/file-system';
 import { verifyFileChecksum, formatChecksum } from '../utils/crypto';
+import type { PluginManifest } from '../types/claude-settings';
 
 /**
  * Handles installation of crafts from various sources
@@ -161,6 +163,11 @@ export class Installer {
 
     // Create metadata file
     await this.createMetadata(craftDir, name, entry);
+
+    // Register plugin in settings if this is a plugin type
+    if (entry.type === 'plugin') {
+      await this.registerPlugin(name, entry, craftDir);
+    }
   }
 
   private async installFromGit(craftDir: string, entry: LockEntry): Promise<void> {
@@ -222,7 +229,10 @@ export class Installer {
     }
   }
 
-  private getTypeDirectory(type: string): string {
+  /**
+   * Get the type-specific directory for a craft type
+   */
+  getTypeDirectory(type: string): string {
     switch (type) {
       case 'skill':
         return 'skills';
@@ -232,9 +242,18 @@ export class Installer {
         return 'commands';
       case 'hook':
         return 'hooks';
+      case 'plugin':
+        return 'plugins';
       default:
         return 'crafts';
     }
+  }
+
+  /**
+   * Get the install path (e.g., '.claude')
+   */
+  getInstallPath(): string {
+    return this.installPath;
   }
 
   private async downloadFile(url: string, outputPath: string): Promise<void> {
@@ -282,12 +301,172 @@ export class Installer {
     );
   }
 
+  /**
+   * Register a plugin in .claude/settings.json
+   */
+  private async registerPlugin(name: string, entry: LockEntry, craftDir: string): Promise<void> {
+    try {
+      // Try to read plugin.json manifest
+      const manifest = await this.readPluginManifest(craftDir);
+
+      // Scan directory for actual components
+      const scannedComponents = await this.scanPluginComponents(craftDir);
+
+      // Merge manifest components (declared) with scanned components (actual)
+      // Manifest takes precedence if both exist (manifest is source of truth)
+      const components: {
+        skills?: string[];
+        agents?: string[];
+        commands?: string[];
+        hooks?: string[];
+      } = {};
+
+      // Start with scanned components
+      if (scannedComponents.skills) components.skills = scannedComponents.skills;
+      if (scannedComponents.agents) components.agents = scannedComponents.agents;
+      if (scannedComponents.commands) components.commands = scannedComponents.commands;
+      if (scannedComponents.hooks) components.hooks = scannedComponents.hooks;
+
+      // Override with manifest if provided (manifest is source of truth)
+      if (manifest?.components) {
+        if (manifest.components.skills) components.skills = manifest.components.skills;
+        if (manifest.components.agents) components.agents = manifest.components.agents;
+        if (manifest.components.commands) components.commands = manifest.components.commands;
+        if (manifest.components.hooks) components.hooks = manifest.components.hooks;
+      }
+
+      // Build plugin config for settings
+      const pluginConfig = {
+        name,
+        version: entry.version,
+        type: 'plugin' as const,
+        enabled: true,
+        installPath: path.relative(this.installPath, craftDir),
+        installedAt: new Date().toISOString(),
+        dependencies: entry.dependencies ? Object.keys(entry.dependencies) : [],
+        isDependency: entry.installedAs === 'dependency',
+        // Copy metadata from plugin.json manifest
+        ...(manifest?.description && { description: manifest.description }),
+        ...(manifest?.author && { author: manifest.author }),
+        ...(manifest?.license && { license: manifest.license }),
+        ...(manifest?.homepage && { homepage: manifest.homepage }),
+        ...(manifest?.repository && { repository: manifest.repository }),
+        ...(manifest?.keywords && { keywords: manifest.keywords }),
+        // Use merged components (scanned + manifest)
+        ...(Object.keys(components).length > 0 && { components }),
+        // CraftDesk-specific fields
+        ...(manifest?.scripts && { scripts: manifest.scripts })
+      };
+
+      await settingsManager.registerPlugin(pluginConfig);
+      logger.debug(`Registered plugin ${name} in settings.json`);
+
+      // Register MCP servers if provided in manifest (official Claude Code field)
+      if (manifest?.mcpServers) {
+        if (typeof manifest.mcpServers === 'object' && !Array.isArray(manifest.mcpServers)) {
+          // Inline MCP server configuration
+          for (const [serverName, serverConfig] of Object.entries(manifest.mcpServers)) {
+            await settingsManager.registerMCPServer(serverName, serverConfig);
+            logger.debug(`Registered MCP server: ${serverName}`);
+          }
+        } else if (typeof manifest.mcpServers === 'string') {
+          // Path to .mcp.json file - would need to read and parse it
+          const mcpPath = path.join(craftDir, manifest.mcpServers);
+          if (await fs.pathExists(mcpPath)) {
+            try {
+              const mcpConfig = await fs.readJson(mcpPath);
+              for (const [serverName, serverConfig] of Object.entries(mcpConfig)) {
+                await settingsManager.registerMCPServer(serverName, serverConfig as any);
+                logger.debug(`Registered MCP server from ${manifest.mcpServers}: ${serverName}`);
+              }
+            } catch (error: any) {
+              logger.warn(`Failed to read MCP config from ${manifest.mcpServers}: ${error.message}`);
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      logger.warn(`Failed to register plugin ${name}: ${error.message}`);
+      // Non-fatal - plugin is still installed, just not registered in settings
+    }
+  }
+
+  /**
+   * Read plugin.json manifest from plugin directory
+   * Plugin manifest is located at .claude-plugin/plugin.json
+   */
+  private async readPluginManifest(pluginDir: string): Promise<PluginManifest | null> {
+    const manifestPath = path.join(pluginDir, '.claude-plugin', 'plugin.json');
+
+    try {
+      if (await fs.pathExists(manifestPath)) {
+        const content = await fs.readFile(manifestPath, 'utf-8');
+        return JSON.parse(content) as PluginManifest;
+      }
+      return null;
+    } catch (error: any) {
+      logger.debug(`Failed to read plugin manifest: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Scan plugin directory to discover components
+   * This ensures we find all skills/agents/commands/hooks even if not listed in plugin.json
+   */
+  private async scanPluginComponents(pluginDir: string): Promise<{
+    skills?: string[];
+    agents?: string[];
+    commands?: string[];
+    hooks?: string[];
+  }> {
+    const components: {
+      skills?: string[];
+      agents?: string[];
+      commands?: string[];
+      hooks?: string[];
+    } = {};
+
+    const componentTypes = ['skills', 'agents', 'commands', 'hooks'] as const;
+
+    for (const type of componentTypes) {
+      const typeDir = path.join(pluginDir, type);
+
+      if (await fs.pathExists(typeDir)) {
+        try {
+          const entries = await fs.readdir(typeDir, { withFileTypes: true });
+          const items = entries
+            .filter(entry => entry.isDirectory())
+            .map(entry => entry.name);
+
+          if (items.length > 0) {
+            components[type] = items;
+          }
+        } catch (error: any) {
+          logger.debug(`Failed to scan ${type} directory: ${error.message}`);
+        }
+      }
+    }
+
+    return components;
+  }
+
   async removeCraft(name: string, type: string): Promise<void> {
     const installDir = path.join(process.cwd(), this.installPath);
     const typeDir = this.getTypeDirectory(type);
     const craftDir = path.join(installDir, typeDir, name);
 
     if (await fs.pathExists(craftDir)) {
+      // Unregister plugin from settings if this is a plugin
+      if (type === 'plugin') {
+        try {
+          await settingsManager.unregisterPlugin(name);
+          logger.debug(`Unregistered plugin ${name} from settings`);
+        } catch (error: any) {
+          logger.warn(`Failed to unregister plugin: ${error.message}`);
+        }
+      }
+
       await fs.remove(craftDir);
       logger.success(`Removed ${name}`);
     } else {

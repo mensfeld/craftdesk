@@ -7,18 +7,43 @@ export function createRemoveCommand(): Command {
   return new Command('remove')
     .description('Remove a dependency')
     .argument('<craft>', 'Craft name to remove')
-    .action(async (craftName: string) => {
-      await removeCommand(craftName);
+    .option('-f, --force', 'Force removal even if other crafts depend on it')
+    .action(async (craftName: string, options: any) => {
+      await removeCommand(craftName, options);
     });
 }
 
-async function removeCommand(craftName: string): Promise<void> {
+async function removeCommand(craftName: string, options: any = {}): Promise<void> {
   try {
     // Read craftdesk.json
     const craftDeskJson = await readCraftDeskJson();
     if (!craftDeskJson) {
       logger.error('No craftdesk.json found in current directory');
       process.exit(1);
+    }
+
+    // Read lockfile to check for dependencies
+    const lockfile = await readCraftDeskLock();
+
+    // Check if other plugins depend on this craft
+    if (lockfile?.pluginTree && !options.force) {
+      const dependents: string[] = [];
+
+      for (const [pluginName, pluginInfo] of Object.entries(lockfile.pluginTree)) {
+        if (pluginInfo.dependencies?.includes(craftName)) {
+          dependents.push(`${pluginName}@${pluginInfo.version}`);
+        }
+      }
+
+      if (dependents.length > 0) {
+        logger.warn(`Warning: ${craftName} is required by:`);
+        for (const dep of dependents) {
+          logger.warn(`  - ${dep}`);
+        }
+        logger.log('');
+        logger.info('Use --force to remove anyway');
+        process.exit(1);
+      }
     }
 
     // Check if craft exists in any dependency field
@@ -50,8 +75,7 @@ async function removeCommand(craftName: string): Promise<void> {
     await writeCraftDeskJson(craftDeskJson);
     logger.success(`Removed ${craftName} from ${foundInField}`);
 
-    // Read lockfile to get craft type
-    const lockfile = await readCraftDeskLock();
+    // Update lockfile if it exists
     if (lockfile && lockfile.crafts[craftName]) {
       const craftEntry = lockfile.crafts[craftName];
 
@@ -61,7 +85,22 @@ async function removeCommand(craftName: string): Promise<void> {
       // Remove from lockfile
       delete lockfile.crafts[craftName];
 
-      // TODO: Clean up dependency tree in lockfile
+      // Clean up plugin tree in lockfile
+      if (lockfile.pluginTree && lockfile.pluginTree[craftName]) {
+        delete lockfile.pluginTree[craftName];
+      }
+
+      // Update requiredBy for other plugins
+      if (lockfile.pluginTree) {
+        for (const [pluginName, pluginInfo] of Object.entries(lockfile.pluginTree)) {
+          if (pluginInfo.requiredBy) {
+            pluginInfo.requiredBy = pluginInfo.requiredBy.filter(dep => dep !== craftName);
+          }
+          if (pluginInfo.dependencies) {
+            pluginInfo.dependencies = pluginInfo.dependencies.filter(dep => dep !== craftName);
+          }
+        }
+      }
 
       // Save updated lockfile
       await writeCraftDeskLock(lockfile);

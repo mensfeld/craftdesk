@@ -38,6 +38,16 @@ async function installCommand(options: any): Promise<void> {
     if (lockfile) {
       // Install from lockfile
       logger.info('Installing from craftdesk.lock...');
+
+      // Show plugin tree info if present
+      if (lockfile.pluginTree && Object.keys(lockfile.pluginTree).length > 0) {
+        const pluginCount = Object.keys(lockfile.pluginTree).length;
+        const directPlugins = Object.values(lockfile.pluginTree).filter(p => !p.isDependency).length;
+        const depPlugins = pluginCount - directPlugins;
+
+        logger.info(`Plugin dependencies: ${directPlugins} direct, ${depPlugins} transitive`);
+      }
+
       logger.startSpinner('Installing crafts...');
 
       await installer.installFromLockfile(lockfile);

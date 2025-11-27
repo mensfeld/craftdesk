@@ -5,8 +5,13 @@ export interface CraftDeskLock {
 
   crafts: Record<string, LockEntry>;
   tree?: DependencyTree;
+
+  /** Plugin dependency tree (shows plugin → dependencies relationships) */
+  pluginTree?: PluginDependencyTree;
+
   metadata?: {
     totalCrafts: number;
+    totalPlugins?: number;
     totalSize: string;
     installPath: string;
   };
@@ -22,6 +27,12 @@ export interface LockEntry {
   scope?: string;
   dependencies?: Record<string, string>;
 
+  /** How this craft was installed */
+  installedAs?: 'plugin' | 'dependency' | 'direct' | 'wrapped';
+
+  /** If this is a wrapped craft, reference to the plugin wrapper */
+  wrappedBy?: string;
+
   // Git source fields
   git?: string;       // Git repository URL
   branch?: string;    // Git branch
@@ -35,4 +46,24 @@ export interface DependencyTree {
   [key: string]: {
     dependencies?: DependencyTree;
   } | string; // String for "(shared)" marker
+}
+
+/**
+ * Plugin dependency tree
+ * Tracks which dependencies belong to which plugins
+ */
+export interface PluginDependencyTree {
+  [pluginName: string]: {
+    /** Plugin version */
+    version: string;
+
+    /** Dependencies of this plugin */
+    dependencies?: string[];
+
+    /** Whether this plugin was installed as a dependency of another plugin */
+    isDependency?: boolean;
+
+    /** Parent plugin (if this is a transitive dependency) */
+    requiredBy?: string[];
+  };
 }

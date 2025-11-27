@@ -6,6 +6,8 @@ import { registryClient } from '../services/registry-client';
 import { installer } from '../services/installer';
 import { gitResolver } from '../services/git-resolver';
 import { calculateFileChecksum } from '../utils/crypto';
+import { pluginResolver } from '../services/plugin-resolver';
+import { craftWrapper } from '../services/craft-wrapper';
 import fs from 'fs-extra';
 import os from 'os';
 
@@ -17,6 +19,7 @@ export function createAddCommand(): Command {
     .option('-O, --save-optional', 'Save as optionalDependency')
     .option('-E, --save-exact', 'Save exact version')
     .option('-t, --type <type>', 'Specify craft type (skill, agent, command, hook, plugin)')
+    .option('--as-plugin', 'Wrap individual craft as a plugin')
     .action(async (craftArg: string, options) => {
       await addCommand(craftArg, options);
     });
@@ -210,6 +213,14 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
 
     logger.succeedSpinner(`Installed ${displayInfo}`);
 
+    // Determine craft installation directory
+    const typeDir = lockEntry.type === 'skill' ? 'skills' :
+                    lockEntry.type === 'agent' ? 'agents' :
+                    lockEntry.type === 'command' ? 'commands' :
+                    lockEntry.type === 'hook' ? 'hooks' :
+                    lockEntry.type === 'plugin' ? 'plugins' : 'crafts';
+    const craftDir = path.join('.claude', typeDir, craftName);
+
     // Update craftdesk.lock
     let lockfile = await readCraftDeskLock();
     if (!lockfile) {
@@ -221,8 +232,36 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
       };
     }
 
+    // Check for --as-plugin flag: wrap individual craft as plugin
+    if (options.asPlugin && lockEntry.type !== 'plugin') {
+      try {
+        await handleCraftWrapping(craftName, lockEntry, craftDir);
+
+        // Update lock entry to reflect it's wrapped
+        lockEntry.installedAs = 'wrapped';
+        lockEntry.wrappedBy = `${craftName}-plugin`;
+
+        logger.success(`Wrapped ${craftName} as plugin successfully!`);
+      } catch (error: any) {
+        logger.error(`Failed to wrap craft: ${error.message}`);
+        // Continue with normal installation
+      }
+    }
+
+    // Check if installed craft is a plugin - handle plugin dependencies
+    if (lockEntry.type === 'plugin' && await fs.pathExists(craftDir)) {
+      const pluginDetected = await isPlugin(craftDir);
+
+      if (pluginDetected) {
+        logger.info('Plugin detected - resolving dependencies...');
+        await handlePluginInstall(craftName, lockEntry, craftDir, lockfile);
+      }
+    }
+
     // Add or update the craft in the lockfile
     lockfile.crafts[craftName] = lockEntry;
+    lockfile.generatedAt = new Date().toISOString();
+
     await writeCraftDeskLock(lockfile);
 
     logger.success('Craft added successfully!');
@@ -345,4 +384,246 @@ function parseGitUrl(urlString: string): any {
   }
 
   return result;
+}
+
+/**
+ * Detect if a craft is a plugin by checking for .claude-plugin/plugin.json or PLUGIN.md
+ */
+async function isPlugin(craftDir: string): Promise<boolean> {
+  try {
+    const hasPluginJson = await fs.pathExists(path.join(craftDir, '.claude-plugin', 'plugin.json'));
+    const hasPluginMd = await fs.pathExists(path.join(craftDir, 'PLUGIN.md'));
+    return hasPluginJson || hasPluginMd;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Handle plugin installation with dependency resolution
+ */
+async function handlePluginInstall(
+  craftName: string,
+  lockEntry: any,
+  craftDir: string,
+  lockfile: any
+): Promise<void> {
+  logger.startSpinner('Resolving plugin dependencies...');
+
+  try {
+    // Resolve plugin dependencies
+    await pluginResolver.resolvePluginDependencies(craftDir, undefined);
+
+    const pluginTree = pluginResolver.buildPluginTree();
+    const flattenedDeps = pluginResolver.getFlattenedDependencies();
+
+    logger.succeedSpinner(`Resolved ${Object.keys(flattenedDeps).length} total dependencies`);
+
+    // Add plugin tree to lockfile
+    if (!lockfile.pluginTree) {
+      lockfile.pluginTree = {};
+    }
+    lockfile.pluginTree[craftName] = pluginTree[craftName];
+
+    // Install plugin dependencies
+    for (const [depName, depInfo] of Object.entries(flattenedDeps)) {
+      if (depName === craftName) continue; // Skip self
+
+      // Check if dependency is already in lockfile
+      if (lockfile.crafts[depName]) {
+        logger.debug(`Dependency ${depName} already installed`);
+        continue;
+      }
+
+      logger.info(`Installing plugin dependency: ${depName}...`);
+
+      try {
+        await installPluginDependency(depName, depInfo, lockfile);
+      } catch (error: any) {
+        logger.error(`Failed to install ${depName}: ${error.message}`);
+        throw new Error(`Plugin dependency installation failed: ${depName}`);
+      }
+    }
+
+    // Reset plugin resolver for next use
+    pluginResolver.reset();
+  } catch (error: any) {
+    logger.failSpinner();
+    logger.warn(`Failed to resolve plugin dependencies: ${error.message}`);
+    logger.info('Plugin installed but dependencies may need manual installation');
+  }
+}
+
+/**
+ * Install a single plugin dependency
+ */
+async function installPluginDependency(
+  depName: string,
+  depInfo: string | any,
+  lockfile: any
+): Promise<void> {
+  let depLockEntry: any;
+
+  // Handle different dependency formats
+  if (typeof depInfo === 'string') {
+    // Simple version string like "^1.5.0" - fetch from registry
+    const craftInfo = await registryClient.getCraftInfo(depName, depInfo);
+
+    if (!craftInfo) {
+      throw new Error(`Craft '${depName}' not found in registry`);
+    }
+
+    if (!craftInfo.download_url) {
+      throw new Error(`Registry did not provide download URL for ${depName}@${craftInfo.version}`);
+    }
+
+    // Calculate checksum if not provided by API
+    let integrity = craftInfo.integrity;
+    if (!integrity) {
+      logger.debug(`Computing checksum for ${depName}...`);
+      const tempDir = path.join(os.tmpdir(), 'craftdesk-verify');
+      const tempFile = path.join(tempDir, `${craftInfo.name}-${craftInfo.version}.zip`);
+
+      try {
+        await fs.ensureDir(tempDir);
+        await registryClient.downloadCraft(craftInfo.download_url, tempFile);
+        integrity = await calculateFileChecksum(tempFile);
+      } finally {
+        await fs.remove(tempFile).catch(() => {});
+        await fs.remove(tempDir).catch(() => {});
+      }
+    }
+
+    depLockEntry = {
+      version: craftInfo.version,
+      resolved: craftInfo.download_url,
+      integrity: integrity,
+      type: craftInfo.type,
+      author: craftInfo.author,
+      dependencies: craftInfo.dependencies || {},
+      installedAs: 'dependency'
+    };
+
+    logger.success(`Resolved ${depName}@${craftInfo.version}`);
+
+  } else if (depInfo.git) {
+    // Git dependency
+    const gitInfo = {
+      url: depInfo.git,
+      branch: depInfo.branch,
+      tag: depInfo.tag,
+      commit: depInfo.commit,
+      path: depInfo.path,
+      file: depInfo.file,
+      name: depName
+    };
+
+    const resolvedGit = await gitResolver.resolveGitDependency(gitInfo);
+    const craftJson = resolvedGit.craftDeskJson;
+    const craftType = craftJson?.type || 'skill';
+
+    depLockEntry = {
+      version: craftJson?.version || gitInfo.tag || gitInfo.branch || 'HEAD',
+      resolved: gitInfo.url,
+      integrity: resolvedGit.resolvedCommit || 'git',
+      type: craftType,
+      author: craftJson?.author || 'git',
+      git: gitInfo.url,
+      ...(gitInfo.branch && { branch: gitInfo.branch }),
+      ...(gitInfo.tag && { tag: gitInfo.tag }),
+      ...(resolvedGit.resolvedCommit && { commit: resolvedGit.resolvedCommit }),
+      ...(gitInfo.path && { path: gitInfo.path }),
+      ...(gitInfo.file && { file: gitInfo.file }),
+      dependencies: craftJson?.dependencies || {},
+      installedAs: 'dependency'
+    };
+
+    logger.success(`Resolved ${depName} from git`);
+
+  } else if (depInfo.registry) {
+    // Custom registry
+    const craftInfo = await registryClient.getCraftInfo(depName, depInfo.version, depInfo.registry);
+
+    if (!craftInfo) {
+      throw new Error(`Craft '${depName}' not found in custom registry`);
+    }
+
+    if (!craftInfo.download_url) {
+      throw new Error(`Registry did not provide download URL for ${depName}@${craftInfo.version}`);
+    }
+
+    // Calculate checksum if not provided
+    let integrity = craftInfo.integrity;
+    if (!integrity) {
+      logger.debug(`Computing checksum for ${depName}...`);
+      const tempDir = path.join(os.tmpdir(), 'craftdesk-verify');
+      const tempFile = path.join(tempDir, `${craftInfo.name}-${craftInfo.version}.zip`);
+
+      try {
+        await fs.ensureDir(tempDir);
+        await registryClient.downloadCraft(craftInfo.download_url, tempFile);
+        integrity = await calculateFileChecksum(tempFile);
+      } finally {
+        await fs.remove(tempFile).catch(() => {});
+        await fs.remove(tempDir).catch(() => {});
+      }
+    }
+
+    depLockEntry = {
+      version: craftInfo.version,
+      resolved: craftInfo.download_url,
+      integrity: integrity,
+      type: craftInfo.type,
+      author: craftInfo.author,
+      dependencies: craftInfo.dependencies || {},
+      installedAs: 'dependency'
+    };
+
+    logger.success(`Resolved ${depName}@${craftInfo.version} from custom registry`);
+
+  } else {
+    throw new Error(`Unknown dependency format for ${depName}`);
+  }
+
+  // Add to lockfile
+  lockfile.crafts[depName] = depLockEntry;
+
+  // Install the craft
+  await installer.installCraft(depName, depLockEntry);
+
+  // If this dependency is also a plugin, recursively resolve its dependencies
+  const depDir = path.join(installer.getInstallPath(), installer.getTypeDirectory(depLockEntry.type), depName);
+  const isDepPlugin = await isPlugin(depDir);
+
+  if (isDepPlugin) {
+    logger.debug(`Dependency ${depName} is a plugin, resolving its dependencies...`);
+    await handlePluginInstall(depName, depLockEntry, depDir, lockfile);
+  }
+}
+
+/**
+ * Handle --as-plugin flag: wrap craft as plugin
+ */
+async function handleCraftWrapping(
+  craftName: string,
+  lockEntry: any,
+  craftDir: string
+): Promise<string> {
+  logger.startSpinner(`Wrapping ${craftName} as plugin...`);
+
+  try {
+    const wrappedDir = await craftWrapper.wrapCraft({
+      craftName,
+      craftType: lockEntry.type,
+      craftPath: craftDir,
+      version: lockEntry.version,
+      author: lockEntry.author
+    });
+
+    logger.succeedSpinner(`Wrapped as plugin: ${craftName}-plugin`);
+    return wrappedDir;
+  } catch (error: any) {
+    logger.failSpinner();
+    throw new Error(`Failed to wrap craft as plugin: ${error.message}`);
+  }
 }

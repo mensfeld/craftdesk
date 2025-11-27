@@ -13,12 +13,15 @@ The command-line interface for managing your Coding AI capabilities. Similar to 
 
 CraftDesk is a package manager for AI capabilities used in Claude Code and other AI development environments. It allows you to:
 
-- **Install AI skills, agents, commands, hooks, and plugins** from git repositories
+- **Install AI skills, agents, commands, hooks, and plugins** from git repositories or registries
+- **Plugin system** - Bundle multiple crafts with automatic dependency resolution
 - **Lock versions** for reproducible environments across teams
-- **Manage dependencies** with automatic transitive resolution
+- **Manage dependencies** with automatic recursive installation
 - **Support monorepos** with subdirectory extraction
 - **Auto-convert GitHub URLs** - paste any GitHub URL (tree/blob)
 - **Direct file references** - install single files from repositories
+- **Settings integration** - Automatic registration in `.claude/settings.json`
+- **MCP server support** - Configure Model Context Protocol servers via plugins
 
 Think of it as:
 - **npm** for Node.js → **CraftDesk** for AI capabilities
@@ -111,6 +114,7 @@ Total: 2 crafts installed
 - [What is CraftDesk?](#what-is-craftdesk)
 - [Quick Start](#quick-start)
 - [Core Concepts](#core-concepts)
+- [Plugin System](#plugin-system)
 - [Command Reference](#command-reference)
 - [Dependency Sources](#dependency-sources)
 - [Monorepo Support](#monorepo-support)
@@ -119,6 +123,7 @@ Total: 2 crafts installed
 - [CI/CD Integration](#cicd-integration)
 - [Troubleshooting](#troubleshooting)
 - [Development](#development)
+- [Documentation](#documentation)
 
 ---
 
@@ -131,7 +136,7 @@ A **craft** is any AI capability:
 - **Agent** - Autonomous task executor (e.g., code-reviewer, test-runner)
 - **Command** - Slash command (e.g., /deploy, /analyze)
 - **Hook** - Event handler (e.g., pre-commit, post-install)
-- **Plugin** - Extended functionality or tool integration (e.g., mcp-server, custom-tools)
+- **Plugin** - Bundle of multiple crafts with dependencies and MCP server configuration
 
 ### Manifest File: craftdesk.json
 
@@ -196,6 +201,7 @@ The lockfile contains SHA-256 hashes that ensure reproducible and secure install
 By default, crafts install to `.claude/` in your project:
 ```
 .claude/
+├── settings.json           # Plugin configuration (auto-generated)
 ├── skills/
 │   ├── ruby-on-rails/
 │   └── postgres-expert/
@@ -205,9 +211,192 @@ By default, crafts install to `.claude/` in your project:
 │   └── deploy/
 ├── hooks/
 │   └── pre-commit/
-└── plugins/
-    └── mcp-server/
+└── plugins/                # Flat plugin installation
+    ├── company-rails-plugin/
+    │   ├── plugin.json
+    │   ├── PLUGIN.md
+    │   └── skills/...
+    └── my-skill-plugin/    # Wrapped skill
 ```
+
+---
+
+## Plugin System
+
+**New in v0.3.0**: CraftDesk now supports a comprehensive plugin system for bundling multiple crafts with automatic dependency management.
+
+### What are Plugins?
+
+Plugins allow you to:
+- **Bundle multiple crafts** (skills, agents, commands, hooks) together
+- **Declare dependencies** that are automatically installed
+- **Configure MCP servers** (Model Context Protocol) for external tools
+- **Share configurations** and related files as a cohesive package
+- **Wrap individual crafts** as plugins for better organization
+
+### Installing Plugins
+
+```bash
+# Install a plugin from registry
+craftdesk add company/rails-standards-plugin
+
+# What happens automatically:
+# 1. Plugin is installed to .claude/plugins/company-rails-standards-plugin/
+# 2. Dependencies are resolved and auto-installed
+# 3. Plugin is registered in .claude/settings.json
+# 4. MCP server is configured (if provided)
+# 5. Plugin tree is added to craftdesk.lock
+```
+
+**Example Output**:
+```
+Adding company/rails-standards-plugin...
+Found company/rails-standards-plugin@2.1.0
+Installing company/rails-standards-plugin...
+Plugin detected - resolving dependencies...
+Resolved 3 total dependencies
+Installing plugin dependency: john/rspec-testing...
+✓ Resolved john/rspec-testing@1.5.3
+Installing plugin dependency: jane/postgres-toolkit...
+✓ Resolved jane/postgres-toolkit@3.2.1
+✓ Installed company/rails-standards-plugin@2.1.0
+Craft added successfully!
+```
+
+### Plugin Structure
+
+A plugin contains a `plugin.json` manifest:
+
+```json
+{
+  "name": "company-rails-plugin",
+  "version": "2.1.0",
+  "type": "plugin",
+  "description": "Rails development standards",
+  "author": "company",
+  "components": {
+    "skills": ["coding-standards", "rails-best-practices"],
+    "agents": ["standards-enforcer"],
+    "commands": ["check-standards"]
+  },
+  "dependencies": {
+    "john/rspec-testing": "^1.5.0",
+    "jane/postgres-toolkit": "^3.2.0"
+  },
+  "mcp": {
+    "type": "stdio",
+    "command": "/usr/bin/rails-standards-mcp",
+    "args": ["--config", ".claude/plugins/company-rails-plugin/config.json"]
+  }
+}
+```
+
+### Automatic Dependency Resolution
+
+When you install a plugin, **all dependencies are automatically installed**:
+
+```bash
+$ craftdesk add company/rails-plugin
+
+# Installs dependency tree:
+# company/rails-plugin (direct)
+#   ├── john/rspec-testing (dependency)
+#   └── jane/postgres-toolkit (dependency)
+#     └── jane/sql-helpers (nested dependency)
+```
+
+All dependencies are:
+- ✅ Downloaded from their respective sources (registry/git)
+- ✅ Installed to appropriate directories
+- ✅ Verified with integrity checksums
+- ✅ Marked as dependencies in lockfile
+- ✅ Registered in `.claude/settings.json`
+
+### Wrapping Individual Crafts
+
+Convert any skill, agent, command, or hook into a plugin:
+
+```bash
+craftdesk add my-skill --as-plugin
+```
+
+**What happens**:
+1. Original craft installed to `.claude/skills/my-skill/`
+2. Plugin wrapper created at `.claude/plugins/my-skill-plugin/`
+3. `plugin.json` and `PLUGIN.md` auto-generated
+4. Craft files copied to plugin structure
+5. Registered in settings as wrapped plugin
+
+**Use cases**:
+- Add MCP server to existing skill
+- Bundle configuration with craft
+- Prepare for publishing to marketplace
+- Enable/disable craft from Claude Code UI
+
+### Plugin Tree Visualization
+
+View your plugin dependency tree:
+
+```bash
+$ craftdesk list
+
+my-project@1.0.0
+
+🔌 Plugins:
+  company/rails-standards@2.1.0
+    ├── john/rspec-testing@1.5.3
+    └── jane/postgres-toolkit@3.2.1
+  my-skill-plugin@1.0.0
+
+📚 Skills:
+  standalone-skill@1.0.0
+
+Total: 5 crafts installed
+```
+
+### Removing Plugins with Dependencies
+
+CraftDesk prevents accidental removal of required dependencies:
+
+```bash
+$ craftdesk remove john/rspec-testing
+
+Warning: john/rspec-testing is required by:
+  - company/rails-standards@2.1.0
+
+Use --force to remove anyway
+```
+
+Force removal:
+```bash
+craftdesk remove john/rspec-testing --force
+```
+
+### Settings Integration
+
+Plugins are automatically registered in `.claude/settings.json`:
+
+```json
+{
+  "version": "1.0.0",
+  "plugins": {
+    "company-rails-plugin": {
+      "name": "company-rails-plugin",
+      "version": "2.1.0",
+      "enabled": true,
+      "installPath": "plugins/company-rails-plugin",
+      "dependencies": ["john-rspec-testing", "jane-postgres-toolkit"],
+      "mcp": {
+        "type": "stdio",
+        "command": "/usr/bin/rails-standards-mcp",
+        "args": ["--config", ".claude/plugins/company-rails-plugin/config.json"]
+      }
+    }
+  }
+}
+```
+
+**For complete details**, see [DEPENDENCY_MANAGEMENT.md](./DEPENDENCY_MANAGEMENT.md)
 
 ---
 
@@ -819,6 +1008,19 @@ npm publish
 
 ---
 
+## Documentation
+
+### Core Documentation
+- **[README.md](./README.md)** - This file, general overview and quick start
+- **[DEPENDENCY_MANAGEMENT.md](./DEPENDENCY_MANAGEMENT.md)** - Complete guide to dependency management
+- **[PLUGIN_IMPLEMENTATION_COMPLETE.md](./PLUGIN_IMPLEMENTATION_COMPLETE.md)** - Plugin system implementation details
+
+### Additional Resources
+- **[Package.json](./package.json)** - Project metadata and scripts
+- **[TypeScript Source](./src/)** - Full source code
+
+---
+
 ## License
 
 MIT
@@ -835,6 +1037,7 @@ MIT
 
 ## Roadmap
 
+### Completed (v0.3.0)
 - ✅ Git dependency support
 - ✅ GitHub URL auto-conversion
 - ✅ Direct file references
@@ -843,6 +1046,23 @@ MIT
 - ✅ Self-hosted registry server support
 - ✅ Registry search and info commands
 - ✅ ZIP archive extraction for registry crafts
+- ✅ **Plugin system** with dependency management
+- ✅ **Auto-install plugin dependencies** (recursive)
+- ✅ **Settings integration** (.claude/settings.json)
+- ✅ **MCP server configuration** via plugins
+- ✅ **Craft wrapping** (--as-plugin flag)
+- ✅ **Plugin tree visualization**
+- ✅ **Dependency removal protection**
+
+### Planned
+- 🔲 Plugin marketplace/directory
+- 🔲 `craftdesk info <plugin>` command
+- 🔲 `craftdesk validate <plugin>` command
+- 🔲 `craftdesk publish` command
+- 🔲 Multiple dependency versions support
+- 🔲 Peer dependency warnings
+- 🔲 Persistent download cache
+- 🔲 Offline installation mode
 - ✅ SHA-256 checksum verification (MITM protection)
 - 🚧 Private registry authentication (token-based)
 - 🚧 Dependency conflict resolution

@@ -41,6 +41,21 @@ export interface DependencyConfig {
   file?: string;      // Direct file path within the repository
 }
 
+/**
+ * Plugin-specific dependency configuration
+ * Extends DependencyConfig with plugin-specific options
+ */
+export interface PluginDependencyConfig extends DependencyConfig {
+  /** Expose plugin capabilities as tools */
+  exposeAsTools?: boolean;
+
+  /** Expose plugin via MCP server */
+  exposeAsMCP?: boolean;
+
+  /** Auto-wrap individual craft as plugin */
+  wrapAsPlugin?: boolean;
+}
+
 export interface RegistryConfig {
   url: string;
   scope?: string;  // Optional scope like "@company"

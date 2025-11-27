@@ -55,11 +55,77 @@ async function listCommand(options: any): Promise<void> {
         displayDependencyTree(lockfile, options.depth);
       }
     } else {
-      // Simple list
-      logger.log('\nInstalled crafts:');
-      for (const craft of installedCrafts) {
-        const typeIcon = getTypeIcon(craft.type);
-        logger.log(`  ${typeIcon} ${craft.name}@${craft.version} (${craft.type})`);
+      // Group crafts by type
+      const lockfile = await readCraftDeskLock();
+      const pluginTree = lockfile?.pluginTree || {};
+
+      const plugins = installedCrafts.filter(c => c.type === 'plugin');
+      const skills = installedCrafts.filter(c => c.type === 'skill');
+      const agents = installedCrafts.filter(c => c.type === 'agent');
+      const commands = installedCrafts.filter(c => c.type === 'command');
+      const hooks = installedCrafts.filter(c => c.type === 'hook');
+      const others = installedCrafts.filter(c => !['plugin', 'skill', 'agent', 'command', 'hook'].includes(c.type));
+
+      // Show plugins with their dependencies
+      if (plugins.length > 0) {
+        logger.log('\n🔌 Plugins:');
+        for (const plugin of plugins) {
+          const treeInfo = pluginTree[plugin.name];
+          const isDep = treeInfo?.isDependency;
+          const suffix = isDep ? ' (dependency)' : '';
+
+          logger.log(`  ${plugin.name}@${plugin.version}${suffix}`);
+
+          // Show dependencies
+          if (treeInfo?.dependencies && treeInfo.dependencies.length > 0) {
+            for (let i = 0; i < treeInfo.dependencies.length; i++) {
+              const dep = treeInfo.dependencies[i];
+              const isLast = i === treeInfo.dependencies.length - 1;
+              const connector = isLast ? '└──' : '├──';
+              logger.log(`    ${connector} ${dep}`);
+            }
+          }
+        }
+      }
+
+      // Show skills
+      if (skills.length > 0) {
+        logger.log('\n📚 Skills:');
+        for (const skill of skills) {
+          logger.log(`  ${skill.name}@${skill.version}`);
+        }
+      }
+
+      // Show agents
+      if (agents.length > 0) {
+        logger.log('\n🤖 Agents:');
+        for (const agent of agents) {
+          logger.log(`  ${agent.name}@${agent.version}`);
+        }
+      }
+
+      // Show commands
+      if (commands.length > 0) {
+        logger.log('\n⚡ Commands:');
+        for (const cmd of commands) {
+          logger.log(`  ${cmd.name}@${cmd.version}`);
+        }
+      }
+
+      // Show hooks
+      if (hooks.length > 0) {
+        logger.log('\n🔗 Hooks:');
+        for (const hook of hooks) {
+          logger.log(`  ${hook.name}@${hook.version}`);
+        }
+      }
+
+      // Show others
+      if (others.length > 0) {
+        logger.log('\n📦 Others:');
+        for (const other of others) {
+          logger.log(`  ${other.name}@${other.version} (${other.type})`);
+        }
       }
 
       logger.log('');
@@ -81,6 +147,8 @@ function getTypeIcon(type: string): string {
       return '⚡';
     case 'hook':
       return '🔗';
+    case 'plugin':
+      return '🔌';
     default:
       return '📦';
   }
