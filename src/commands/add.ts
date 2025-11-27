@@ -8,6 +8,7 @@ import { gitResolver } from '../services/git-resolver';
 import { calculateFileChecksum } from '../utils/crypto';
 import { pluginResolver } from '../services/plugin-resolver';
 import { craftWrapper } from '../services/craft-wrapper';
+import { DependencyConfig } from '../types/craftdesk-json';
 import fs from 'fs-extra';
 import os from 'os';
 
@@ -203,7 +204,7 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
     }
 
     // Add to craftdesk.json
-    craftDeskJson[depField][craftName] = depValue;
+    (craftDeskJson[depField] as Record<string, string | DependencyConfig>)[craftName] = depValue;
 
     // Save craftdesk.json
     await writeCraftDeskJson(craftDeskJson);

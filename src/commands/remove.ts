@@ -58,13 +58,14 @@ async function removeCommand(craftName: string, options: any = {}): Promise<void
     const depFields = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 
     for (const field of depFields) {
-      if (craftDeskJson[field] && craftDeskJson[field][craftName]) {
+      const deps = craftDeskJson[field] as Record<string, unknown> | undefined;
+      if (deps && deps[craftName]) {
         found = true;
         foundInField = field;
-        delete craftDeskJson[field][craftName];
+        delete deps[craftName];
 
         // Remove empty objects
-        if (Object.keys(craftDeskJson[field]).length === 0) {
+        if (Object.keys(deps).length === 0) {
           delete craftDeskJson[field];
         }
         break;

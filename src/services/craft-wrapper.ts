@@ -348,7 +348,7 @@ See the original ${craftType} documentation in the \`${this.getTypeDirectory(cra
     const { craftName, craftType } = manifest.wrapped;
 
     // Copy craft back to original location
-    const typeDir = this.getTypeDirectory(craftType);
+    const typeDir = this.getTypeDirectory(craftType as 'skill' | 'agent' | 'command' | 'hook');
     const craftSourceDir = path.join(pluginDir, typeDir, craftName);
     const craftDestDir = path.join(installDir, typeDir, craftName);
 

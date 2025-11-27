@@ -175,6 +175,20 @@ export interface PluginManifest {
     preRemove?: string;
   };
 
+  /** CraftDesk-specific: Wrapped craft metadata (for plugins created from individual crafts) */
+  wrapped?: {
+    /** Original craft name */
+    craftName: string;
+    /** Original craft type */
+    craftType: string;
+    /** Timestamp when the craft was wrapped */
+    wrappedAt?: string;
+    /** Whether to expose as tools */
+    exposeAsTools?: boolean;
+    /** Whether to expose via MCP */
+    exposeAsMCP?: boolean;
+  };
+
   /** Additional metadata - allows for future extensibility */
   [key: string]: unknown;
 }
