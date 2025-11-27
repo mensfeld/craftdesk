@@ -4,6 +4,11 @@ import { CraftDeskJson } from '../types/craftdesk-json';
 import { writeCraftDeskJson, exists } from '../utils/file-system';
 import { logger } from '../utils/logger';
 
+/**
+ * Creates the 'init' command for initializing a new craftdesk.json file
+ *
+ * @returns Commander command instance configured for project initialization
+ */
 export function createInitCommand(): Command {
   return new Command('init')
     .description('Initialize a new craftdesk.json file')

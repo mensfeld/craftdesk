@@ -18,16 +18,29 @@ import type {
 } from '../types/claude-settings';
 import { logger } from '../utils/logger';
 
+/**
+ * Service for managing Claude Code settings.json file
+ *
+ * Handles plugin registration, MCP server configuration, and settings validation
+ */
 export class SettingsManager {
   private settingsPath: string;
 
+  /**
+   * Creates a new SettingsManager instance
+   *
+   * @param installDir - Installation directory (default: '.claude')
+   */
   constructor(private installDir: string = '.claude') {
     this.settingsPath = path.join(installDir, 'settings.json');
   }
 
   /**
    * Read the settings file
+   *
    * Returns default settings if file doesn't exist
+   *
+   * @returns The Claude settings object
    */
   async readSettings(): Promise<ClaudeSettings> {
     try {
@@ -48,6 +61,8 @@ export class SettingsManager {
 
   /**
    * Write settings to file
+   *
+   * @param settings - The settings object to write
    */
   async writeSettings(settings: ClaudeSettings): Promise<void> {
     try {
@@ -73,6 +88,8 @@ export class SettingsManager {
 
   /**
    * Register a plugin in settings
+   *
+   * @param config - Plugin configuration to register
    */
   async registerPlugin(config: PluginConfig): Promise<void> {
     const settings = await this.readSettings();
@@ -89,6 +106,8 @@ export class SettingsManager {
 
   /**
    * Unregister a plugin from settings
+   *
+   * @param pluginName - Name of the plugin to unregister
    */
   async unregisterPlugin(pluginName: string): Promise<void> {
     const settings = await this.readSettings();
@@ -105,6 +124,9 @@ export class SettingsManager {
 
   /**
    * Get plugin configuration
+   *
+   * @param pluginName - Name of the plugin
+   * @returns Plugin configuration or null if not found
    */
   async getPlugin(pluginName: string): Promise<PluginConfig | null> {
     const settings = await this.readSettings();
@@ -113,6 +135,8 @@ export class SettingsManager {
 
   /**
    * List all registered plugins
+   *
+   * @returns Array of plugin configurations
    */
   async listPlugins(): Promise<PluginConfig[]> {
     const settings = await this.readSettings();
@@ -121,6 +145,9 @@ export class SettingsManager {
 
   /**
    * Enable a plugin
+   *
+   * @param pluginName - Name of the plugin to enable
+   * @throws Error if plugin not found
    */
   async enablePlugin(pluginName: string): Promise<void> {
     const settings = await this.readSettings();
@@ -136,6 +163,9 @@ export class SettingsManager {
 
   /**
    * Disable a plugin
+   *
+   * @param pluginName - Name of the plugin to disable
+   * @throws Error if plugin not found
    */
   async disablePlugin(pluginName: string): Promise<void> {
     const settings = await this.readSettings();
@@ -151,6 +181,9 @@ export class SettingsManager {
 
   /**
    * Register an MCP server
+   *
+   * @param serverName - Name of the MCP server
+   * @param config - MCP server configuration
    */
   async registerMCPServer(
     serverName: string,
@@ -169,6 +202,8 @@ export class SettingsManager {
 
   /**
    * Unregister an MCP server
+   *
+   * @param serverName - Name of the MCP server to unregister
    */
   async unregisterMCPServer(serverName: string): Promise<void> {
     const settings = await this.readSettings();
@@ -185,6 +220,10 @@ export class SettingsManager {
 
   /**
    * Track a wrapped craft
+   *
+   * @param pluginName - Name of the plugin
+   * @param wrappedConfig - Wrapped craft configuration
+   * @throws Error if plugin not found
    */
   async registerWrappedCraft(
     pluginName: string,
@@ -207,6 +246,10 @@ export class SettingsManager {
 
   /**
    * Update plugin dependencies tracking
+   *
+   * @param pluginName - Name of the plugin
+   * @param dependencies - Array of dependency names
+   * @throws Error if plugin not found
    */
   async updatePluginDependencies(
     pluginName: string,
@@ -224,6 +267,10 @@ export class SettingsManager {
 
   /**
    * Mark plugin as dependency of another plugin
+   *
+   * @param pluginName - Name of the plugin
+   * @param isDependency - Whether to mark as dependency (default: true)
+   * @throws Error if plugin not found
    */
   async markAsDependency(pluginName: string, isDependency: boolean = true): Promise<void> {
     const settings = await this.readSettings();
@@ -238,6 +285,8 @@ export class SettingsManager {
 
   /**
    * Get all plugins that are dependencies (not directly installed)
+   *
+   * @returns Array of dependency plugin configurations
    */
   async getDependencyPlugins(): Promise<PluginConfig[]> {
     const settings = await this.readSettings();
@@ -246,6 +295,8 @@ export class SettingsManager {
 
   /**
    * Get all directly installed plugins (not dependencies)
+   *
+   * @returns Array of directly installed plugin configurations
    */
   async getDirectPlugins(): Promise<PluginConfig[]> {
     const settings = await this.readSettings();
@@ -254,6 +305,8 @@ export class SettingsManager {
 
   /**
    * Check if settings file exists
+   *
+   * @returns True if settings file exists
    */
   async exists(): Promise<boolean> {
     return fs.pathExists(this.settingsPath);
@@ -261,6 +314,9 @@ export class SettingsManager {
 
   /**
    * Create default settings structure
+   *
+   * @returns Default Claude settings object
+   * @private
    */
   private createDefaultSettings(): ClaudeSettings {
     return {
@@ -273,6 +329,8 @@ export class SettingsManager {
 
   /**
    * Validate settings structure
+   *
+   * @returns Validation result with valid flag and error messages
    */
   async validateSettings(): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];

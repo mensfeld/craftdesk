@@ -6,6 +6,11 @@ import { gitResolver } from '../services/git-resolver';
 import { installer } from '../services/installer';
 import { CraftDeskLock } from '../types/craftdesk-lock';
 
+/**
+ * Creates the 'install' command for installing all dependencies from craftdesk.json
+ *
+ * @returns Commander command instance configured for dependency installation
+ */
 export function createInstallCommand(): Command {
   return new Command('install')
     .description('Install all dependencies from craftdesk.json')

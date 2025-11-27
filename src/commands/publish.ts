@@ -13,6 +13,11 @@ interface PublishOptions {
   dryRun?: boolean;
 }
 
+/**
+ * Creates the publish command for publishing a craft to the registry.
+ *
+ * @returns The configured Commander command instance
+ */
 export function createPublishCommand(): Command {
   return new Command('publish')
     .description('Publish a craft to the registry')

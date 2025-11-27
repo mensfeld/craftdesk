@@ -14,6 +14,9 @@ import { logger } from '../utils/logger';
 import type { CraftDeskJson } from '../types/craftdesk-json';
 import type { PluginDependencyTree } from '../types/craftdesk-lock';
 
+/**
+ * Information about a resolved plugin dependency
+ */
 export interface ResolvedPlugin {
   name: string;
   version: string;
@@ -22,6 +25,12 @@ export interface ResolvedPlugin {
   requiredBy: string[];
 }
 
+/**
+ * Service for resolving plugin dependencies and building dependency trees
+ *
+ * Handles recursive dependency resolution, circular dependency detection,
+ * and flattening nested plugin dependencies
+ */
 export class PluginResolver {
   private resolvedPlugins: Map<string, ResolvedPlugin> = new Map();
   private resolutionStack: string[] = [];
@@ -103,6 +112,8 @@ export class PluginResolver {
 
   /**
    * Build plugin dependency tree for lockfile
+   *
+   * @returns Plugin dependency tree structure
    */
   buildPluginTree(): PluginDependencyTree {
     const tree: PluginDependencyTree = {};
@@ -121,7 +132,10 @@ export class PluginResolver {
 
   /**
    * Get flattened dependencies
+   *
    * This is what goes into craftdesk.json
+   *
+   * @returns Flattened dependency map
    */
   getFlattenedDependencies(): Record<string, string | import('../types/craftdesk-json').DependencyConfig> {
     const flattened: Record<string, string | import('../types/craftdesk-json').DependencyConfig> = {};
@@ -145,6 +159,8 @@ export class PluginResolver {
 
   /**
    * Get only directly installed plugins (not dependencies)
+   *
+   * @returns Array of directly installed plugins
    */
   getDirectPlugins(): ResolvedPlugin[] {
     return Array.from(this.resolvedPlugins.values()).filter(p => !p.isDependency);
@@ -152,6 +168,8 @@ export class PluginResolver {
 
   /**
    * Get only dependency plugins (not directly installed)
+   *
+   * @returns Array of dependency plugins
    */
   getDependencyPlugins(): ResolvedPlugin[] {
     return Array.from(this.resolvedPlugins.values()).filter(p => p.isDependency);
@@ -159,6 +177,10 @@ export class PluginResolver {
 
   /**
    * Read plugin manifest (craftdesk.json)
+   *
+   * @param pluginPath - Path to plugin directory
+   * @returns Parsed manifest or null if not found
+   * @private
    */
   private async readPluginManifest(pluginPath: string): Promise<CraftDeskJson | null> {
     const manifestPath = path.join(pluginPath, 'craftdesk.json');
@@ -177,6 +199,8 @@ export class PluginResolver {
 
   /**
    * Reset resolver state
+   *
+   * Clears all resolved plugins and resolution stack
    */
   reset(): void {
     this.resolvedPlugins.clear();

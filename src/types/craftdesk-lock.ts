@@ -1,51 +1,103 @@
+/**
+ * Lockfile format for CraftDesk (craftdesk.lock)
+ * Ensures reproducible installations by recording exact resolved versions
+ */
 export interface CraftDeskLock {
+  /** CraftDesk project version */
   version: string;
+
+  /** Lockfile format version */
   lockfileVersion: number;
+
+  /** ISO timestamp of when the lockfile was generated */
   generatedAt: string;
 
+  /** Map of craft names to their resolved lock entries */
   crafts: Record<string, LockEntry>;
+
+  /** Dependency tree showing parent-child relationships */
   tree?: DependencyTree;
 
-  /** Plugin dependency tree (shows plugin → dependencies relationships) */
+  /** Plugin dependency tree showing plugin-specific relationships */
   pluginTree?: PluginDependencyTree;
 
+  /** Installation metadata and statistics */
   metadata?: {
+    /** Total number of crafts installed */
     totalCrafts: number;
+    /** Total number of plugins installed */
     totalPlugins?: number;
+    /** Total installation size as a human-readable string */
     totalSize: string;
+    /** Path where crafts are installed */
     installPath: string;
   };
 }
 
+/**
+ * Lockfile entry for a single craft
+ * Records the exact resolved version and source information
+ */
 export interface LockEntry {
+  /** Resolved semantic version */
   version: string;
-  resolved: string;  // Download URL or git URL
-  integrity: string; // SHA-256 hash (or commit hash for git)
+
+  /** Download URL or git repository URL */
+  resolved: string;
+
+  /** SHA-256 hash for registry downloads or git commit hash */
+  integrity: string;
+
+  /** Type of craft */
   type: 'skill' | 'agent' | 'command' | 'hook' | 'plugin';
+
+  /** Author identifier */
   author?: string;
+
+  /** Registry URL where the craft was resolved */
   registry?: string;
+
+  /** Scope if the craft is scoped */
   scope?: string;
+
+  /** Dependencies of this craft mapped to their versions */
   dependencies?: Record<string, string>;
 
-  /** How this craft was installed */
+  /** Installation method */
   installedAs?: 'plugin' | 'dependency' | 'direct' | 'wrapped';
 
-  /** If this is a wrapped craft, reference to the plugin wrapper */
+  /** Plugin that wraps this craft (if installedAs is 'wrapped') */
   wrappedBy?: string;
 
-  // Git source fields
-  git?: string;       // Git repository URL
-  branch?: string;    // Git branch
-  tag?: string;       // Git tag
-  commit?: string;    // Git commit hash (resolved)
-  path?: string;      // Subdirectory path within repository
-  file?: string;      // Direct file path within repository
+  /** Git repository URL for git-based installations */
+  git?: string;
+
+  /** Git branch used */
+  branch?: string;
+
+  /** Git tag used */
+  tag?: string;
+
+  /** Resolved git commit hash */
+  commit?: string;
+
+  /** Subdirectory path within repository */
+  path?: string;
+
+  /** Direct file path within repository */
+  file?: string;
 }
 
+/**
+ * Recursive dependency tree structure
+ * Shows hierarchical relationships between crafts
+ */
 export interface DependencyTree {
+  /** Maps craft names to their dependencies or a "(shared)" marker */
   [key: string]: {
+    /** Nested dependencies of this craft */
     dependencies?: DependencyTree;
-  } | string; // String for "(shared)" marker
+  } | string;
 }
 
 /**

@@ -3,6 +3,11 @@ import { readCraftDeskJson, writeCraftDeskJson, readCraftDeskLock, writeCraftDes
 import { logger } from '../utils/logger';
 import { installer } from '../services/installer';
 
+/**
+ * Creates the remove command for removing a craft dependency from the project.
+ *
+ * @returns The configured Commander command instance
+ */
 export function createRemoveCommand(): Command {
   return new Command('remove')
     .description('Remove a dependency')

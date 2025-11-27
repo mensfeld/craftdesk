@@ -8,6 +8,11 @@ interface LoginOptions {
   registry?: string;
 }
 
+/**
+ * Creates the 'login' command for authenticating with a CraftDesk registry
+ *
+ * @returns Commander command instance configured for registry authentication
+ */
 export function createLoginCommand(): Command {
   return new Command('login')
     .description('Authenticate with a CraftDesk registry')
@@ -73,6 +78,8 @@ async function loginCommand(options: LoginOptions): Promise<void> {
 
 /**
  * Prompt for API token with hidden input
+ *
+ * @returns The API token entered by the user
  */
 async function promptForToken(): Promise<string> {
   return new Promise((resolve) => {

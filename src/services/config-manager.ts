@@ -120,8 +120,21 @@ export class ConfigManager {
 
   /**
    * Convert registry URL or name to environment variable name suffix
-   * e.g., 'https://craftdesk.ai' -> 'CRAFTDESK_AI'
-   * e.g., 'company-private' -> 'COMPANY_PRIVATE'
+   *
+   * @param registryUrl - The registry URL or name to convert
+   * @returns Environment variable name suffix (e.g., 'CRAFTDESK_AI')
+   * @private
+   *
+   * @example
+   * ```typescript
+   * // URL to env name
+   * getRegistryEnvName('https://craftdesk.ai');
+   * // Returns: 'CRAFTDESK_AI'
+   *
+   * // Registry name to env name
+   * getRegistryEnvName('company-private');
+   * // Returns: 'COMPANY_PRIVATE'
+   * ```
    */
   private getRegistryEnvName(registryUrl: string): string {
     try {
@@ -234,6 +247,7 @@ export class ConfigManager {
 
   /**
    * Gets the path to the global config file
+   *
    * @returns Path to ~/.craftdesk/config.json
    */
   getGlobalConfigPath(): string {
@@ -243,7 +257,10 @@ export class ConfigManager {
 
   /**
    * Loads the global configuration from ~/.craftdesk/config.json
+   *
    * Returns an empty config if the file doesn't exist
+   *
+   * @returns The global configuration object
    */
   async loadGlobalConfig(): Promise<GlobalConfig> {
     if (this.globalConfig) {
@@ -263,7 +280,10 @@ export class ConfigManager {
 
   /**
    * Saves the global configuration to ~/.craftdesk/config.json
+   *
    * Creates the .craftdesk directory if it doesn't exist
+   *
+   * @param config - The global configuration to save
    */
   async saveGlobalConfig(config: GlobalConfig): Promise<void> {
     const configPath = this.getGlobalConfigPath();

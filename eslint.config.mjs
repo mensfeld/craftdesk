@@ -57,7 +57,7 @@ export default [
       // ============================================================
 
       // Require JSDoc for exported functions, classes, and methods
-      'jsdoc/require-jsdoc': ['warn', {
+      'jsdoc/require-jsdoc': ['error', {
         publicOnly: true,
         require: {
           FunctionDeclaration: true,
@@ -79,24 +79,24 @@ export default [
       }],
 
       // Require description in JSDoc
-      'jsdoc/require-description': ['warn', {
+      'jsdoc/require-description': ['error', {
         contexts: ['FunctionDeclaration', 'MethodDefinition', 'ClassDeclaration'],
         checkConstructors: false,
       }],
 
       // Require @param tags for all parameters
-      'jsdoc/require-param': 'warn',
-      'jsdoc/require-param-description': 'warn',
+      'jsdoc/require-param': 'error',
+      'jsdoc/require-param-description': 'error',
       'jsdoc/require-param-name': 'error',
       'jsdoc/require-param-type': 'off', // TypeScript provides types
 
       // Require @returns tag when function returns a value
-      'jsdoc/require-returns': 'warn',
-      'jsdoc/require-returns-description': 'warn',
+      'jsdoc/require-returns': 'error',
+      'jsdoc/require-returns-description': 'error',
       'jsdoc/require-returns-type': 'off', // TypeScript provides types
 
       // Require @throws tag for thrown exceptions
-      'jsdoc/require-throws': 'warn',
+      'jsdoc/require-throws': 'error',
 
       // Validate JSDoc syntax
       'jsdoc/check-alignment': 'error',

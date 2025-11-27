@@ -4,6 +4,9 @@ import path from 'path';
 import { configManager } from './config-manager';
 import { logger } from '../utils/logger';
 
+/**
+ * Information about a craft from the registry
+ */
 export interface CraftInfo {
   name: string;
   author: string;
@@ -15,18 +18,37 @@ export interface CraftInfo {
   integrity?: string;
 }
 
+/**
+ * Information about a registry user
+ */
 export interface UserInfo {
   username: string;
   email: string;
   organization?: string;
 }
 
+/**
+ * Response from dependency resolution API
+ */
 export interface ResolveResponse {
   resolved: Record<string, any>;
   lockfile: any;
 }
 
+/**
+ * Client for interacting with CraftDesk registry APIs
+ *
+ * Handles authentication, craft metadata retrieval, dependency resolution,
+ * and publishing operations with the CraftDesk registry server.
+ */
 export class RegistryClient {
+  /**
+   * Get an authenticated HTTP client for a registry
+   *
+   * @param registryUrl - The registry URL to connect to
+   * @returns Configured axios instance
+   * @private
+   */
   private async getClient(registryUrl: string): Promise<AxiosInstance> {
     const token = await configManager.getAuthToken(registryUrl);
 
@@ -40,6 +62,14 @@ export class RegistryClient {
     });
   }
 
+  /**
+   * Get information about a craft from the registry
+   *
+   * @param craftName - Name of the craft (e.g., 'author/name')
+   * @param version - Optional specific version to fetch
+   * @param registryOverride - Optional registry URL to use instead of default
+   * @returns Craft information or null if not found
+   */
   async getCraftInfo(craftName: string, version?: string, registryOverride?: string): Promise<CraftInfo | null> {
     // Get registry URL - can be overridden by dependency-specific registry
     const registryUrl = registryOverride
@@ -70,6 +100,12 @@ export class RegistryClient {
     }
   }
 
+  /**
+   * List all available versions of a craft
+   *
+   * @param craftName - Name of the craft to list versions for
+   * @returns Array of version strings
+   */
   async listVersions(craftName: string): Promise<string[]> {
     const registryUrl = await configManager.getRegistryForCraft(craftName);
     const client = await this.getClient(registryUrl);
@@ -85,6 +121,13 @@ export class RegistryClient {
     }
   }
 
+  /**
+   * Resolve dependencies via the registry API
+   *
+   * @param dependencies - Map of craft names to version constraints
+   * @returns Resolved dependencies and lockfile or null on error
+   * @throws Error if no registry is configured
+   */
   async resolveDependencies(dependencies: Record<string, string>): Promise<ResolveResponse | null> {
     // Get the default registry from craftdesk.json
     const craftDesk = await configManager.getCraftDeskJson();
@@ -115,6 +158,13 @@ export class RegistryClient {
     }
   }
 
+  /**
+   * Download a craft archive from a URL
+   *
+   * @param downloadUrl - URL to download the craft from
+   * @param outputPath - Local path to save the downloaded file
+   * @throws Error if download fails
+   */
   async downloadCraft(downloadUrl: string, outputPath: string): Promise<void> {
     try {
       // Ensure output directory exists
@@ -146,6 +196,14 @@ export class RegistryClient {
     }
   }
 
+  /**
+   * Search for crafts in the registry
+   *
+   * @param query - Search query string
+   * @param type - Optional filter by craft type
+   * @returns Array of matching crafts
+   * @throws Error if no registry is configured
+   */
   async searchCrafts(query: string, type?: string): Promise<CraftInfo[]> {
     // Get the default registry from craftdesk.json
     const craftDesk = await configManager.getCraftDeskJson();
@@ -180,6 +238,18 @@ export class RegistryClient {
 
   /**
    * Create a new version for a craft
+   *
+   * @param author - Craft author
+   * @param name - Craft name
+   * @param data - Version data including files and metadata
+   * @param data.version - Semantic version string (e.g., "1.0.0")
+   * @param data.type - Type of craft (skill, agent, command, hook, plugin)
+   * @param data.description - Human-readable description of the craft
+   * @param data.main_file - Path to the main file (e.g., "SKILL.md")
+   * @param data.changelog - Markdown formatted changelog for this version
+   * @param data.files - Array of file objects with path and content properties
+   * @returns Response from the API
+   * @throws Error if authentication fails or craft creation fails
    */
   async createVersion(
     author: string,
@@ -223,6 +293,13 @@ export class RegistryClient {
 
   /**
    * Publish a craft (change status to published)
+   *
+   * @param author - Craft author
+   * @param name - Craft name
+   * @param options - Publishing options (visibility)
+   * @param options.visibility - Visibility level: "public", "private", or "organization"
+   * @returns Response from the API
+   * @throws Error if authentication fails or craft not found
    */
   async publishCraft(
     author: string,
@@ -261,6 +338,7 @@ export class RegistryClient {
 
   /**
    * Verify an API token with a registry
+   *
    * Calls GET /api/v1/me to validate the token and get user info
    *
    * @param registryUrl - The URL of the registry
@@ -287,6 +365,14 @@ export class RegistryClient {
     }
   }
 
+  /**
+   * Parse a craft name into author and name components
+   *
+   * @param craftName - Craft name in 'author/name' or '@author/name' format
+   * @returns Tuple of [author, name]
+   * @throws Error if craft name format is invalid
+   * @private
+   */
   private parseCraftName(craftName: string): [string, string] {
     // Handle author/name format (e.g., "john/rails-api")
     if (craftName.includes('/') && !craftName.startsWith('@')) {

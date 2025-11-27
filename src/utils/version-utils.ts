@@ -1,9 +1,13 @@
 /**
- * Utilities for version comparison and semver operations
+ * Utilities for version comparison and semantic versioning operations
+ * Supports parsing, comparing, and sorting semver version strings
  */
 
 /**
- * Parses a semver string into components
+ * Parses a semantic version string into its components
+ *
+ * @param version - Version string to parse (e.g., "1.2.3" or "v1.2.3")
+ * @returns Object with major, minor, and patch numbers, or null if invalid
  */
 export function parseSemver(version: string): { major: number; minor: number; patch: number } | null {
   const match = version.match(/^v?(\d+)\.(\d+)\.(\d+)/);
@@ -17,8 +21,11 @@ export function parseSemver(version: string): { major: number; minor: number; pa
 }
 
 /**
- * Compares two semver versions
- * Returns: -1 if a < b, 0 if a == b, 1 if a > b
+ * Compares two semantic version strings
+ *
+ * @param a - First version to compare
+ * @param b - Second version to compare
+ * @returns -1 if a < b, 0 if a == b, 1 if a > b
  */
 export function compareSemver(a: string, b: string): number {
   const aParsed = parseSemver(a);
@@ -39,14 +46,21 @@ export function compareSemver(a: string, b: string): number {
 }
 
 /**
- * Checks if version b is newer than version a
+ * Checks if the latest version is newer than the current version
+ *
+ * @param current - Current version string
+ * @param latest - Latest version string
+ * @returns True if latest is newer than current
  */
 export function isNewerVersion(current: string, latest: string): boolean {
   return compareSemver(latest, current) > 0;
 }
 
 /**
- * Sorts tags by semver (newest first)
+ * Sorts an array of version tags by semantic version (newest first)
+ *
+ * @param tags - Array of version tag strings to sort
+ * @returns New array sorted in descending order (newest to oldest)
  */
 export function sortTagsBySemver(tags: string[]): string[] {
   return [...tags].sort((a, b) => {
@@ -66,7 +80,11 @@ export function sortTagsBySemver(tags: string[]): string[] {
 }
 
 /**
- * Determines the type of update (major, minor, patch)
+ * Determines the type of update between two versions
+ *
+ * @param current - Current version string
+ * @param latest - Latest version string
+ * @returns Update type ('major', 'minor', or 'patch') or undefined if not parseable
  */
 export function getUpdateType(current: string, latest: string): 'major' | 'minor' | 'patch' | undefined {
   const currentParsed = parseSemver(current);
@@ -83,13 +101,21 @@ export function getUpdateType(current: string, latest: string): 'major' | 'minor
 
 /**
  * Pads a string to the right with spaces
+ *
+ * @param str - String to pad
+ * @param len - Desired total length
+ * @returns Padded string
  */
 export function padRight(str: string, len: number): string {
   return str.padEnd(len);
 }
 
 /**
- * Wraps text with ANSI color codes
+ * Wraps text with ANSI color codes for terminal output
+ *
+ * @param text - Text to colorize
+ * @param color - Color to apply
+ * @returns Text wrapped with ANSI color codes
  */
 export function colorize(text: string, color: 'red' | 'yellow' | 'green' | 'reset'): string {
   const colors = {

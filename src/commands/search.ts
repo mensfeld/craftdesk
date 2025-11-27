@@ -2,6 +2,11 @@ import { Command } from 'commander';
 import { registryClient } from '../services/registry-client';
 import { logger } from '../utils/logger';
 
+/**
+ * Creates the search command for finding crafts in the registry by keyword.
+ *
+ * @returns The configured Commander command instance
+ */
 export function createSearchCommand(): Command {
   return new Command('search')
     .description('Search for crafts in the registry')

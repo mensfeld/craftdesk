@@ -38,6 +38,11 @@ interface UpdateOptions {
   latest?: boolean;
 }
 
+/**
+ * Creates the update command for updating installed crafts to newer versions.
+ *
+ * @returns The configured Commander command instance
+ */
 export function createUpdateCommand(): Command {
   return new Command('update')
     .description('Update installed crafts to newer versions')

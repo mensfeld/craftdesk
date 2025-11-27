@@ -236,6 +236,9 @@ export class Installer {
 
   /**
    * Get the type-specific directory for a craft type
+   *
+   * @param type - The craft type (skill, agent, command, hook, plugin)
+   * @returns Directory name for the craft type
    */
   getTypeDirectory(type: string): string {
     switch (type) {
@@ -256,6 +259,8 @@ export class Installer {
 
   /**
    * Get the install path (e.g., '.claude')
+   *
+   * @returns The installation directory path
    */
   getInstallPath(): string {
     return this.installPath;
@@ -308,6 +313,11 @@ export class Installer {
 
   /**
    * Register a plugin in .claude/settings.json
+   *
+   * @param name - The plugin name
+   * @param entry - The lock file entry for this plugin
+   * @param craftDir - The directory where the plugin is installed
+   * @returns Promise that resolves when registration is complete
    */
   private async registerPlugin(name: string, entry: LockEntry, craftDir: string): Promise<void> {
     try {
@@ -399,6 +409,9 @@ export class Installer {
   /**
    * Read plugin.json manifest from plugin directory
    * Plugin manifest is located at .claude-plugin/plugin.json
+   *
+   * @param pluginDir - Path to the plugin directory containing .claude-plugin/plugin.json
+   * @returns The parsed plugin manifest or null if not found or invalid
    */
   private async readPluginManifest(pluginDir: string): Promise<PluginManifest | null> {
     const manifestPath = path.join(pluginDir, '.claude-plugin', 'plugin.json');
@@ -418,6 +431,9 @@ export class Installer {
   /**
    * Scan plugin directory to discover components
    * This ensures we find all skills/agents/commands/hooks even if not listed in plugin.json
+   *
+   * @param pluginDir - Path to the plugin directory to scan for components
+   * @returns Object containing arrays of discovered skills, agents, commands, and hooks
    */
   private async scanPluginComponents(pluginDir: string): Promise<{
     skills?: string[];
@@ -466,6 +482,13 @@ export class Installer {
     return components;
   }
 
+  /**
+   * Remove an installed craft from the project
+   * Unregisters plugins from settings and removes the craft directory
+   *
+   * @param name - Name of the craft to remove
+   * @param type - Type of craft (plugin, skill, agent, command, hook)
+   */
   async removeCraft(name: string, type: string): Promise<void> {
     const installDir = path.join(process.cwd(), this.installPath);
     const typeDir = this.getTypeDirectory(type);
@@ -489,6 +512,12 @@ export class Installer {
     }
   }
 
+  /**
+   * List all installed crafts in the project
+   * Scans the installation directory for all craft types and reads their metadata
+   *
+   * @returns Array of installed crafts with name, version, and type information
+   */
   async listInstalled(): Promise<Array<{ name: string; version: string; type: string }>> {
     const installDir = path.join(process.cwd(), this.installPath);
     const installed: Array<{ name: string; version: string; type: string }> = [];

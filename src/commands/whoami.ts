@@ -7,6 +7,11 @@ interface WhoamiOptions {
   registry?: string;
 }
 
+/**
+ * Creates the whoami command for displaying the currently authenticated user.
+ *
+ * @returns The configured Commander command instance
+ */
 export function createWhoamiCommand(): Command {
   return new Command('whoami')
     .description('Display the currently logged in user')

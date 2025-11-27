@@ -2,6 +2,11 @@ import { Command } from 'commander';
 import { registryClient } from '../services/registry-client';
 import { logger } from '../utils/logger';
 
+/**
+ * Creates the 'info' command for displaying detailed craft information
+ *
+ * @returns Commander command instance configured for showing craft info
+ */
 export function createInfoCommand(): Command {
   return new Command('info')
     .description('Show detailed information about a craft')

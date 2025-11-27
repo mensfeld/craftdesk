@@ -3,6 +3,11 @@ import { readCraftDeskJson, readCraftDeskLock } from '../utils/file-system';
 import { logger } from '../utils/logger';
 import { installer } from '../services/installer';
 
+/**
+ * Creates the 'list' command for listing installed crafts
+ *
+ * @returns Commander command instance configured for listing crafts
+ */
 export function createListCommand(): Command {
   return new Command('list')
     .description('List installed crafts')

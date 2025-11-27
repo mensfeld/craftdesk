@@ -23,6 +23,11 @@ interface OutdatedInfo {
   updateType?: 'major' | 'minor' | 'patch' | 'commit';
 }
 
+/**
+ * Creates the outdated command for checking newer versions of installed crafts.
+ *
+ * @returns The configured Commander command instance
+ */
 export function createOutdatedCommand(): Command {
   return new Command('outdated')
     .description('Check for newer versions of installed crafts')
@@ -278,11 +283,23 @@ function getRemoteHeadCommit(gitUrl: string, branch: string): string | null {
   }
 }
 
-// Export git helper functions for testing
+/**
+ * Exported wrapper for testing - fetches remote git tags from a repository.
+ *
+ * @param gitUrl - The git repository URL
+ * @returns Array of tag names found in the repository
+ */
 export function getRemoteTagsExported(gitUrl: string): string[] {
   return getRemoteTags(gitUrl);
 }
 
+/**
+ * Exported wrapper for testing - fetches the latest commit hash from a git branch.
+ *
+ * @param gitUrl - The git repository URL
+ * @param branch - The branch name to check
+ * @returns The commit hash or null if not found
+ */
 export function getRemoteHeadCommitExported(gitUrl: string, branch: string): string | null {
   return getRemoteHeadCommit(gitUrl, branch);
 }

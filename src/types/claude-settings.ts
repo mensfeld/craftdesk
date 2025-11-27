@@ -175,12 +175,13 @@ export interface PluginManifest {
     preRemove?: string;
   };
 
-  /** Additional metadata */
-  [key: string]: any;
+  /** Additional metadata - allows for future extensibility */
+  [key: string]: unknown;
 }
 
 /**
- * Default settings structure
+ * Default Claude settings structure
+ * Used when initializing a new .claude/settings.json file
  */
 export const DEFAULT_CLAUDE_SETTINGS: ClaudeSettings = {
   version: '1.0.0',

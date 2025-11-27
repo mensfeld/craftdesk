@@ -6,6 +6,11 @@ interface LogoutOptions {
   registry?: string;
 }
 
+/**
+ * Creates the 'logout' command for removing registry authentication
+ *
+ * @returns Commander command instance configured for logging out
+ */
 export function createLogoutCommand(): Command {
   return new Command('logout')
     .description('Remove authentication for a registry')

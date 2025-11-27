@@ -14,6 +14,9 @@ import { logger } from '../utils/logger';
 import { ensureDir } from '../utils/file-system';
 import type { PluginManifest } from '../types/claude-settings';
 
+/**
+ * Options for wrapping a craft as a plugin
+ */
 export interface WrapOptions {
   /** Original craft name */
   craftName: string;
@@ -40,6 +43,11 @@ export interface WrapOptions {
   exposeAsMCP?: boolean;
 }
 
+/**
+ * Service for wrapping individual crafts as Claude Code plugins
+ *
+ * Handles creating plugin structure, generating manifests, and managing wrapped crafts
+ */
 export class CraftWrapper {
   /**
    * Wrap an individual craft as a plugin
@@ -117,6 +125,10 @@ export class CraftWrapper {
 
   /**
    * Copy craft files to plugin directory
+   *
+   * @param sourcePath - Source craft directory
+   * @param destPath - Destination plugin directory
+   * @private
    */
   private async copyCraftFiles(sourcePath: string, destPath: string): Promise<void> {
     try {
@@ -138,6 +150,18 @@ export class CraftWrapper {
 
   /**
    * Create plugin manifest
+   *
+   * @param options - Manifest creation options
+   * @param options.name - Plugin name
+   * @param options.version - Plugin version
+   * @param options.author - Plugin author
+   * @param options.description - Plugin description
+   * @param options.craftName - Original craft name
+   * @param options.craftType - Type of craft being wrapped
+   * @param options.exposeAsTools - Whether to expose as tools
+   * @param options.exposeAsMCP - Whether to expose via MCP
+   * @returns The created plugin manifest
+   * @private
    */
   private createPluginManifest(options: {
     name: string;
@@ -201,6 +225,15 @@ export class CraftWrapper {
 
   /**
    * Generate PLUGIN.md documentation
+   *
+   * @param options - Documentation generation options
+   * @param options.pluginName - Name of the plugin
+   * @param options.craftName - Name of the wrapped craft
+   * @param options.craftType - Type of craft being wrapped
+   * @param options.description - Plugin description
+   * @param options.version - Plugin version
+   * @returns Generated markdown documentation
+   * @private
    */
   private generatePluginDoc(options: {
     pluginName: string;
@@ -255,6 +288,10 @@ See the original ${craftType} documentation in the \`${this.getTypeDirectory(cra
 
   /**
    * Get type directory name
+   *
+   * @param type - The craft type
+   * @returns Directory name for the craft type
+   * @private
    */
   private getTypeDirectory(type: 'skill' | 'agent' | 'command' | 'hook'): string {
     switch (type) {
@@ -273,6 +310,10 @@ See the original ${craftType} documentation in the \`${this.getTypeDirectory(cra
 
   /**
    * Check if a craft is already wrapped
+   *
+   * @param craftName - Name of the craft to check
+   * @param installDir - Installation directory (default: '.claude')
+   * @returns True if craft is already wrapped as a plugin
    */
   async isWrapped(craftName: string, installDir: string = '.claude'): Promise<boolean> {
     const pluginName = `${craftName}-plugin`;
@@ -283,6 +324,10 @@ See the original ${craftType} documentation in the \`${this.getTypeDirectory(cra
 
   /**
    * Unwrap a plugin (convert back to standalone craft)
+   *
+   * @param pluginName - Name of the plugin to unwrap
+   * @param installDir - Installation directory (default: '.claude')
+   * @throws Error if plugin manifest not found or plugin is not wrapped
    */
   async unwrapPlugin(pluginName: string, installDir: string = '.claude'): Promise<void> {
     const pluginDir = path.join(installDir, 'plugins', pluginName);
