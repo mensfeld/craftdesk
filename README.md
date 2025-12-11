@@ -5,6 +5,7 @@
 The command-line interface for managing your Coding AI capabilities. Similar to npm for JavaScript or bundler for Ruby, CraftDesk CLI provides a complete package management solution for AI-powered development tools.
 
 [![npm version](https://img.shields.io/npm/v/craftdesk.svg)](https://www.npmjs.com/package/craftdesk)
+[![CI](https://github.com/mensfeld/craftdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/mensfeld/craftdesk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
