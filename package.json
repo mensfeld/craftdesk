@@ -46,7 +46,7 @@
     "@vitest/coverage-v8": "^4.0.0",
     "@vitest/ui": "^4.0.0",
     "eslint": "^9.39.1",
-    "eslint-plugin-jsdoc": "^61.4.1",
+    "eslint-plugin-jsdoc": "^62.0.0",
     "typedoc": "^0.28.14",
     "typescript": "^5.3.3",
     "vitest": "^4.0.0"
