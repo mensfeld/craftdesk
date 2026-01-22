@@ -10,7 +10,7 @@ export interface CraftDeskJson {
   version: string;
 
   /** Type of craft being defined */
-  type?: 'skill' | 'agent' | 'command' | 'hook' | 'plugin';
+  type?: 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection';
 
   /** Human-readable description of the project */
   description?: string;

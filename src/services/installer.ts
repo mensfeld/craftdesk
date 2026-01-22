@@ -237,7 +237,7 @@ export class Installer {
   /**
    * Get the type-specific directory for a craft type
    *
-   * @param type - The craft type (skill, agent, command, hook, plugin)
+   * @param type - The craft type (skill, agent, command, hook, plugin, collection)
    * @returns Directory name for the craft type
    */
   getTypeDirectory(type: string): string {
@@ -252,6 +252,8 @@ export class Installer {
         return 'hooks';
       case 'plugin':
         return 'plugins';
+      case 'collection':
+        return 'collections';
       default:
         return 'crafts';
     }
@@ -526,7 +528,7 @@ export class Installer {
       return installed;
     }
 
-    const typeDirs = ['skills', 'agents', 'commands', 'hooks', 'plugins'];
+    const typeDirs = ['skills', 'agents', 'commands', 'hooks', 'plugins', 'collections'];
 
     for (const typeDir of typeDirs) {
       const dir = path.join(installDir, typeDir);

@@ -125,7 +125,7 @@ export class GitResolver {
           logger.debug(`Found direct file reference: ${gitInfo.file}`);
 
           // Try to find craftdesk.json to get type and metadata
-          let craftType: 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | undefined;
+          let craftType: 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection' | undefined;
           let craftName: string | undefined;
           let craftVersion: string | undefined;
           let craftDeps: Record<string, any> | undefined;
@@ -218,10 +218,11 @@ export class GitResolver {
    * @returns The inferred craft type
    * @private
    */
-  private inferCraftTypeFromFilename(filename: string): 'skill' | 'agent' | 'command' | 'hook' | 'plugin' {
+  private inferCraftTypeFromFilename(filename: string): 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection' {
     const lower = filename.toLowerCase();
 
     // Check filename for type indicators
+    if (lower.includes('collection')) return 'collection';
     if (lower.includes('agent')) return 'agent';
     if (lower.includes('command')) return 'command';
     if (lower.includes('hook')) return 'hook';
@@ -236,7 +237,7 @@ export class GitResolver {
    * Infers the craft type from the repository structure
    *
    * Type inference strategy:
-   * 1. Check for marker files: SKILL.md, AGENT.md, COMMAND.md, HOOK.md
+   * 1. Check for marker files: SKILL.md, AGENT.md, COMMAND.md, HOOK.md, COLLECTION.md
    * 2. Check directory name for type indicators
    * 3. Default to 'skill' if no indicators found
    *
@@ -245,13 +246,14 @@ export class GitResolver {
    * @returns The inferred craft type
    * @private
    */
-  private async inferCraftType(repoPath: string, subPath?: string): Promise<'skill' | 'agent' | 'command' | 'hook' | 'plugin'> {
+  private async inferCraftType(repoPath: string, subPath?: string): Promise<'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection'> {
     const checkPath = subPath ? path.join(repoPath, subPath) : repoPath;
 
     // Check for type-indicating files
     const files = await fs.readdir(checkPath);
 
-    // Look for SKILL.md, AGENT.md, COMMAND.md, HOOK.md, PLUGIN.md
+    // Look for SKILL.md, AGENT.md, COMMAND.md, HOOK.md, PLUGIN.md, COLLECTION.md
+    if (files.includes('COLLECTION.md')) return 'collection';
     if (files.includes('SKILL.md')) return 'skill';
     if (files.includes('AGENT.md')) return 'agent';
     if (files.includes('COMMAND.md')) return 'command';
@@ -260,6 +262,7 @@ export class GitResolver {
 
     // Check directory name hints
     const dirName = subPath ? path.basename(subPath) : path.basename(repoPath);
+    if (dirName.includes('collection')) return 'collection';
     if (dirName.includes('skill')) return 'skill';
     if (dirName.includes('agent')) return 'agent';
     if (dirName.includes('command')) return 'command';

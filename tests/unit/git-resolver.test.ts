@@ -66,6 +66,16 @@ describe('GitResolver', () => {
       await cleanupTempDir(testDir);
     });
 
+    it('should infer collection type from COLLECTION.md marker file', async () => {
+      const testDir = await createTempDir('type-test-');
+      await fs.writeFile(path.join(testDir, 'COLLECTION.md'), '# Collection');
+
+      const type = await (gitResolver as any).inferCraftType(testDir);
+
+      expect(type).toBe('collection');
+      await cleanupTempDir(testDir);
+    });
+
     it('should infer type from directory name containing "skill"', async () => {
       const testDir = await createTempDir('my-skill-');
 
@@ -84,6 +94,15 @@ describe('GitResolver', () => {
       expect(type).toBe('agent');
     });
 
+    it('should infer type from directory name containing "collection"', async () => {
+      const testDir = path.join(tempDir, 'my-collection');
+      await fs.ensureDir(testDir);
+
+      const type = await (gitResolver as any).inferCraftType(testDir);
+
+      expect(type).toBe('collection');
+    });
+
     it('should default to skill when no indicators found', async () => {
       const testDir = await createTempDir('random-name-');
 
@@ -91,6 +110,33 @@ describe('GitResolver', () => {
 
       expect(type).toBe('skill');
       await cleanupTempDir(testDir);
+    });
+  });
+
+  describe('inferCraftTypeFromFilename', () => {
+    it('should infer collection type from filename containing "collection"', () => {
+      const type = (gitResolver as any).inferCraftTypeFromFilename('rails-collection.md');
+      expect(type).toBe('collection');
+    });
+
+    it('should infer agent type from filename containing "agent"', () => {
+      const type = (gitResolver as any).inferCraftTypeFromFilename('rspec-dry-agent.md');
+      expect(type).toBe('agent');
+    });
+
+    it('should infer skill type from filename containing "skill"', () => {
+      const type = (gitResolver as any).inferCraftTypeFromFilename('ruby-skill.md');
+      expect(type).toBe('skill');
+    });
+
+    it('should default to skill when no type indicators found', () => {
+      const type = (gitResolver as any).inferCraftTypeFromFilename('random-file.md');
+      expect(type).toBe('skill');
+    });
+
+    it('should be case insensitive', () => {
+      const type = (gitResolver as any).inferCraftTypeFromFilename('Rails-COLLECTION.md');
+      expect(type).toBe('collection');
     });
   });
 

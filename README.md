@@ -14,7 +14,8 @@ The command-line interface for managing your Coding AI capabilities. Similar to 
 
 CraftDesk is a package manager for AI capabilities used in Claude Code and other AI development environments. It allows you to:
 
-- **Install AI skills, agents, commands, hooks, and plugins** from git repositories or registries
+- **Install AI skills, agents, commands, hooks, plugins, and collections** from git repositories or registries
+- **Collections** - Curate and share groups of related crafts that work together
 - **Plugin system** - Bundle multiple crafts with automatic dependency resolution
 - **Lock versions** for reproducible environments across teams
 - **Manage dependencies** with automatic recursive installation
@@ -115,6 +116,8 @@ Total: 2 crafts installed
 - [What is CraftDesk?](#what-is-craftdesk)
 - [Quick Start](#quick-start)
 - [Core Concepts](#core-concepts)
+  - [Crafts](#crafts)
+  - [Collections](#collections)
 - [Plugin System](#plugin-system)
 - [Command Reference](#command-reference)
   - [init](#craftdesk-init-options)
@@ -152,6 +155,78 @@ A **craft** is any AI capability:
 - **Command** - Slash command (e.g., /deploy, /analyze)
 - **Hook** - Event handler (e.g., pre-commit, post-install)
 - **Plugin** - Bundle of multiple crafts with dependencies and MCP server configuration
+- **Collection** - Curated group of related crafts that work together (e.g., rails-enterprise-stack)
+
+### Collections
+
+**Collections** are crafts that group related capabilities together. Instead of installing 6 individual crafts, install one collection that includes all of them.
+
+**Why use collections?**
+- **Faster onboarding** - One command installs complete workflows
+- **Curated quality** - Experts bundle best-of-breed tools
+- **Consistent stacks** - Teams share identical setups
+- **Versioned together** - Dependencies tested to work together
+
+**Example: Rails Enterprise Stack**
+
+Create a collection in `craftdesk.json`:
+```json
+{
+  "name": "rails-enterprise-stack",
+  "version": "1.0.0",
+  "type": "collection",
+  "description": "Complete Rails enterprise development setup",
+  "dependencies": {
+    "ruby-on-rails": "^7.0.0",
+    "rspec-testing": "^3.12.0",
+    "rubocop-linter": "^1.50.0",
+    "sidekiq-background-jobs": "^7.0.0",
+    "postgresql-expert": "^15.0.0",
+    "devise-auth": "^4.9.0"
+  }
+}
+```
+
+**Installing a collection:**
+```bash
+craftdesk add git+https://github.com/company/rails-enterprise-stack.git
+```
+
+**What happens:**
+1. CraftDesk reads the collection's `craftdesk.json`
+2. Recursively resolves all 6 dependencies
+3. Installs the collection + all dependencies
+4. Creates lockfile tracking everything
+
+**Result:** 7 crafts installed (collection + 6 dependencies)
+
+**How collections work:**
+
+Collections leverage CraftDesk's **recursive dependency resolution**. When you install a craft with dependencies, CraftDesk:
+1. Clones the repository
+2. Reads `craftdesk.json`
+3. Adds all dependencies to the resolution queue
+4. Recursively resolves transitive dependencies
+5. Installs everything with a single lockfile
+
+This means **any craft with dependencies acts as a collection** - the `type: "collection"` field just improves discoverability in the registry.
+
+**Nested collections:**
+
+Collections can depend on other collections:
+```json
+{
+  "name": "full-stack-rails",
+  "type": "collection",
+  "dependencies": {
+    "rails-enterprise-stack": "^1.0.0",  // Another collection!
+    "frontend-tooling": "^2.1.0",        // Another collection!
+    "docker-deployment": "^1.5.0"
+  }
+}
+```
+
+CraftDesk handles arbitrary nesting depth with circular dependency detection.
 
 ### Manifest File: craftdesk.json
 
@@ -425,7 +500,7 @@ Initialize a new craftdesk.json file.
 - `-y, --yes` - Skip prompts and use defaults
 - `-n, --name <name>` - Project name (default: directory name)
 - `-v, --version <version>` - Project version (default: "1.0.0")
-- `-t, --type <type>` - Project type: skill, agent, command, hook, or plugin (default: "skill")
+- `-t, --type <type>` - Project type: skill, agent, command, hook, plugin, or collection (default: "skill")
 - `-d, --description <desc>` - Project description
 - `-a, --author <author>` - Author name
 - `-l, --license <license>` - License (default: "MIT")
@@ -484,7 +559,7 @@ Add a new dependency and install it immediately.
 - `-D, --save-dev` - Save as devDependency
 - `-O, --save-optional` - Save as optionalDependency
 - `-E, --save-exact` - Save exact version (no ^ or ~)
-- `-t, --type <type>` - Specify craft type (skill, agent, command, hook, plugin)
+- `-t, --type <type>` - Specify craft type (skill, agent, command, hook, plugin, collection)
 
 **Examples:**
 
@@ -565,7 +640,7 @@ Total: 3 crafts installed
 Search for crafts in the registry.
 
 **Options:**
-- `-t, --type <type>` - Filter by type (skill, agent, command, hook, plugin)
+- `-t, --type <type>` - Filter by type (skill, agent, command, hook, plugin, collection)
 
 **Examples:**
 ```bash
@@ -1051,7 +1126,7 @@ Complete specification of the craftdesk.json format:
 |-------|------|----------|-------------|
 | `name` | string | Yes | Craft name (lowercase, no spaces) |
 | `version` | string | Yes | Semantic version (e.g., "1.0.0") |
-| `type` | string | No | Craft type: skill, agent, command, hook, plugin |
+| `type` | string | No | Craft type: skill, agent, command, hook, plugin, collection |
 | `description` | string | No | Short description |
 | `author` | string | No | Author name and email |
 | `license` | string | No | License identifier (e.g., "MIT") |

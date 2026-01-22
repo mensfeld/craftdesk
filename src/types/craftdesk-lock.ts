@@ -49,7 +49,7 @@ export interface LockEntry {
   integrity: string;
 
   /** Type of craft */
-  type: 'skill' | 'agent' | 'command' | 'hook' | 'plugin';
+  type: 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection';
 
   /** Author identifier */
   author?: string;
