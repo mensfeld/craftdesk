@@ -17,6 +17,13 @@ All notable changes to this project will be documented in this file.
 - Enhanced `getTypeDirectory()` to return `collections` for collection type
 - Improved craft type inference to prioritize collection detection
 
+### Documentation
+- Significantly enhanced Monorepo Support section in README
+- Added comprehensive examples of GitHub URL auto-conversion
+- Documented all git URL syntax variations (#path:, #file:, etc.)
+- Added real-world monorepo examples and use cases
+- Clarified lockfile tracking for monorepo subdirectories
+
 ## 0.3.0 (2025-11-18)
 
 ### Initial Release

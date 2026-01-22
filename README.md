@@ -1019,7 +1019,56 @@ From git repositories:
 
 ## Monorepo Support
 
-Install multiple crafts from the same git repository using subdirectory paths:
+CraftDesk has **full support for monorepo workflows**, allowing you to install crafts from subdirectories within a repository. This is perfect for teams maintaining multiple related crafts in one repository.
+
+### Quick Start: Auto-Converting GitHub URLs
+
+The easiest way to install from monorepos is to **paste GitHub web URLs directly**:
+
+```bash
+# Subdirectory from monorepo - just paste the GitHub URL!
+craftdesk add https://github.com/company/monorepo/tree/main/skills/auth
+
+# Single file from monorepo
+craftdesk add https://github.com/company/monorepo/blob/main/skills/auth/SKILL.md
+
+# Works with any branch or tag
+craftdesk add https://github.com/company/monorepo/tree/v2.0.0/packages/deployer
+```
+
+CraftDesk automatically converts these to the correct git syntax and extracts only the specified subdirectory or file.
+
+### Git URL Syntax
+
+For more control, use explicit git URL syntax with path or file specifiers:
+
+```bash
+# Subdirectory with branch
+craftdesk add git+https://github.com/company/monorepo.git#main#path:skills/auth
+
+# Subdirectory with tag
+craftdesk add git+https://github.com/company/monorepo.git#v2.0.0#path:packages/deployer
+
+# Subdirectory with commit hash
+craftdesk add git+https://github.com/company/monorepo.git#abc123def#path:skills/auth
+
+# Single file with branch
+craftdesk add git+https://github.com/company/monorepo.git#main#file:skills/auth/SKILL.md
+
+# Just path (uses default branch)
+craftdesk add git+https://github.com/company/monorepo.git#path:skills/auth
+```
+
+**Syntax breakdown:**
+- `#main` - Branch name
+- `#v2.0.0` - Git tag
+- `#abc123def` - Commit hash (full 40-char)
+- `#path:skills/auth` - Subdirectory to extract
+- `#file:skill.md` - Single file to extract
+
+### Using in craftdesk.json
+
+Multiple crafts from the same monorepo:
 
 ```json
 {
@@ -1034,40 +1083,89 @@ Install multiple crafts from the same git repository using subdirectory paths:
       "tag": "v3.2.0",
       "path": "agents/processor"
     },
-    "report-generator": {
+    "deploy-script": {
       "git": "https://github.com/company/ai-crafts-monorepo.git",
       "tag": "v3.2.0",
-      "path": "skills/reporting"
+      "file": "scripts/deploy.md"
     }
   }
 }
 ```
 
-**Benefits:**
-- Single git repository for multiple crafts
-- Version them together with git tags
-- Each craft installs independently
-- Efficient cloning (repo cached during resolution)
+**Each craft can:**
+- Use different subdirectories (`path`)
+- Reference single files (`file`)
+- Use the same or different tags/branches
+- Be versioned independently or together
 
-**Monorepo structure example:**
+### Benefits
+
+✅ **Single repository** for multiple related crafts
+✅ **Version together** using git tags (or independently with branches)
+✅ **Efficient cloning** - repository is cloned once and reused
+✅ **Clear organization** - keep related crafts together
+✅ **Atomic updates** - update all crafts by changing the tag
+✅ **Works with private repos** - standard git authentication
+
+### Monorepo Structure Example
+
 ```
 ai-crafts-monorepo/
 ├── skills/
 │   ├── auth/
 │   │   ├── craftdesk.json
 │   │   └── SKILL.md
+│   ├── database/
+│   │   ├── craftdesk.json
+│   │   └── SKILL.md
 │   └── reporting/
 │       ├── craftdesk.json
 │       └── SKILL.md
 ├── agents/
-│   └── processor/
+│   ├── code-reviewer/
+│   │   ├── craftdesk.json
+│   │   └── AGENT.md
+│   └── test-runner/
 │       ├── craftdesk.json
 │       └── AGENT.md
-└── commands/
-    └── deploy/
-        ├── craftdesk.json
-        └── COMMAND.md
+├── commands/
+│   └── deploy/
+│       ├── craftdesk.json
+│       └── COMMAND.md
+└── scripts/
+    ├── setup.md
+    └── deploy.md
 ```
+
+### Lockfile Tracking
+
+CraftDesk lockfile tracks the exact subdirectory and commit:
+
+```json
+{
+  "crafts": {
+    "auth-handler": {
+      "git": "https://github.com/company/monorepo.git",
+      "tag": "v3.2.0",
+      "commit": "abc123def456...",
+      "path": "skills/auth",
+      "type": "skill",
+      "version": "3.2.0"
+    }
+  }
+}
+```
+
+This ensures **reproducible installations** - the exact subdirectory from the exact commit is always installed.
+
+### Real-World Example
+
+```bash
+# Install from technicalpickles' monorepo
+craftdesk add https://github.com/technicalpickles/pickled-claude-plugins/tree/main/plugins/working-in-monorepos/skills/working-in-monorepos
+```
+
+This installs only the `working-in-monorepos` skill from the deeply nested monorepo structure.
 
 ---
 
