@@ -68,6 +68,11 @@ describe('Installer', () => {
       expect(result).toBe('hooks');
     });
 
+    it('should return correct directory for collection type', () => {
+      const result = (installer as any).getTypeDirectory('collection');
+      expect(result).toBe('collections');
+    });
+
     it('should default to crafts for unknown type', () => {
       const result = (installer as any).getTypeDirectory('unknown' as any);
       expect(result).toBe('crafts');

@@ -11,7 +11,7 @@ export interface CraftInfo {
   name: string;
   author: string;
   version: string;
-  type: 'skill' | 'agent' | 'command' | 'hook' | 'plugin';
+  type: 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection';
   description?: string;
   dependencies?: Record<string, string>;
   download_url?: string;

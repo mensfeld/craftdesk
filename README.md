@@ -14,7 +14,8 @@ The command-line interface for managing your Coding AI capabilities. Similar to 
 
 CraftDesk is a package manager for AI capabilities used in Claude Code and other AI development environments. It allows you to:
 
-- **Install AI skills, agents, commands, hooks, and plugins** from git repositories or registries
+- **Install AI skills, agents, commands, hooks, plugins, and collections** from git repositories or registries
+- **Collections** - Curate and share groups of related crafts that work together
 - **Plugin system** - Bundle multiple crafts with automatic dependency resolution
 - **Lock versions** for reproducible environments across teams
 - **Manage dependencies** with automatic recursive installation
@@ -425,7 +426,7 @@ Initialize a new craftdesk.json file.
 - `-y, --yes` - Skip prompts and use defaults
 - `-n, --name <name>` - Project name (default: directory name)
 - `-v, --version <version>` - Project version (default: "1.0.0")
-- `-t, --type <type>` - Project type: skill, agent, command, hook, or plugin (default: "skill")
+- `-t, --type <type>` - Project type: skill, agent, command, hook, plugin, or collection (default: "skill")
 - `-d, --description <desc>` - Project description
 - `-a, --author <author>` - Author name
 - `-l, --license <license>` - License (default: "MIT")
@@ -484,7 +485,7 @@ Add a new dependency and install it immediately.
 - `-D, --save-dev` - Save as devDependency
 - `-O, --save-optional` - Save as optionalDependency
 - `-E, --save-exact` - Save exact version (no ^ or ~)
-- `-t, --type <type>` - Specify craft type (skill, agent, command, hook, plugin)
+- `-t, --type <type>` - Specify craft type (skill, agent, command, hook, plugin, collection)
 
 **Examples:**
 
@@ -565,7 +566,7 @@ Total: 3 crafts installed
 Search for crafts in the registry.
 
 **Options:**
-- `-t, --type <type>` - Filter by type (skill, agent, command, hook, plugin)
+- `-t, --type <type>` - Filter by type (skill, agent, command, hook, plugin, collection)
 
 **Examples:**
 ```bash
@@ -1051,7 +1052,7 @@ Complete specification of the craftdesk.json format:
 |-------|------|----------|-------------|
 | `name` | string | Yes | Craft name (lowercase, no spaces) |
 | `version` | string | Yes | Semantic version (e.g., "1.0.0") |
-| `type` | string | No | Craft type: skill, agent, command, hook, plugin |
+| `type` | string | No | Craft type: skill, agent, command, hook, plugin, collection |
 | `description` | string | No | Short description |
 | `author` | string | No | Author name and email |
 | `license` | string | No | License identifier (e.g., "MIT") |
