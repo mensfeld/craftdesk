@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0] - 2026-01-22
+## 0.4.0 (Unreleased)
 
 ### Added
 - Added `collection` craft type for grouping related crafts together
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced `getTypeDirectory()` to return `collections` for collection type
 - Improved craft type inference to prioritize collection detection
 
-## [0.3.0] - 2026-01-22
+## 0.3.0 (2025-11-18)
 
 ### Initial Release
 - Package manager for Claude Code skills, agents, commands, hooks, and plugins
