@@ -10,7 +10,8 @@
   },
   "includePaths": [
     "package.json",
-    "package-lock.json"
+    "package-lock.json",
+    ".github/workflows/**"
   ],
   "packageRules": [
     {
