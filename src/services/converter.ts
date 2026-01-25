@@ -40,6 +40,10 @@ export class ConverterService {
 
   /**
    * Convert a craft from a directory
+   *
+   * @param craftDir - Directory containing the craft
+   * @param options - Conversion options
+   * @returns Conversion result
    */
   async convertFromDirectory(
     craftDir: string,

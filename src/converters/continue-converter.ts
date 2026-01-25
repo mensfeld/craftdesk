@@ -59,6 +59,10 @@ export class ContinueConverter extends BaseConverter {
 
   /**
    * Build Continue.dev prompt file content
+   *
+   * @param craft - Craft content
+   * @param sections - Parsed markdown sections
+   * @returns Formatted Continue prompt file content
    */
   private buildContinuePrompt(craft: CraftContent, sections: Record<string, string>): string {
     const lines: string[] = [];
@@ -181,6 +185,10 @@ export class ContinueConverter extends BaseConverter {
   /**
    * Build Continue.dev rule file content
    * Rules are applied automatically, prompts are invoked manually
+   *
+   * @param craft - Craft content
+   * @param sections - Parsed markdown sections
+   * @returns Formatted Continue rule file content
    */
   private buildContinueRule(craft: CraftContent, sections: Record<string, string>): string {
     const lines: string[] = [];
@@ -237,6 +245,9 @@ export class ContinueConverter extends BaseConverter {
 
   /**
    * Format craft name for Continue (camelCase for name field)
+   *
+   * @param name - Craft name in kebab-case
+   * @returns Formatted name in camelCase
    */
   private formatName(name: string): string {
     const parts = name.split('-');
@@ -245,6 +256,9 @@ export class ContinueConverter extends BaseConverter {
 
   /**
    * Format craft name into readable title
+   *
+   * @param name - Craft name in kebab-case
+   * @returns Formatted title with capitalized words
    */
   private formatTitle(name: string): string {
     return name

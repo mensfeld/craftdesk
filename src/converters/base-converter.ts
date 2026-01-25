@@ -33,6 +33,9 @@ export abstract class BaseConverter {
 
   /**
    * Perform the full conversion with validation and error handling
+   *
+   * @param craft - The craft content to convert
+   * @returns Conversion result with success status and any errors
    */
   async convertWithValidation(craft: CraftContent): Promise<ConversionResult> {
     const metadata = this.getMetadata();
@@ -87,6 +90,9 @@ export abstract class BaseConverter {
 
   /**
    * Extract code examples from markdown content
+   *
+   * @param markdown - Markdown content to parse
+   * @returns Array of code examples with optional language and description
    */
   protected extractExamples(markdown: string): Array<{ language?: string; code: string; description?: string }> {
     const examples: Array<{ language?: string; code: string; description?: string }> = [];
@@ -106,6 +112,10 @@ export abstract class BaseConverter {
 
   /**
    * Extract a section from markdown by heading
+   *
+   * @param markdown - Markdown content to parse
+   * @param headingPattern - Regular expression to match section heading
+   * @returns Section content or undefined if not found
    */
   protected extractSection(markdown: string, headingPattern: RegExp): string | undefined {
     const lines = markdown.split('\n');
@@ -141,6 +151,9 @@ export abstract class BaseConverter {
 
   /**
    * Extract all sections from markdown
+   *
+   * @param markdown - Markdown content to parse
+   * @returns Record of section names to content
    */
   protected extractAllSections(markdown: string): Record<string, string> {
     const sections: Record<string, string> = {};
@@ -195,6 +208,11 @@ export abstract class BaseConverter {
 
   /**
    * Clean markdown content by removing certain elements
+   *
+   * @param markdown - Markdown content to clean
+   * @param options - Cleaning options
+   * @param options.removeFrontmatter - Whether to remove YAML frontmatter
+   * @returns Cleaned markdown content
    */
   protected cleanMarkdown(markdown: string, options: { removeFrontmatter?: boolean } = {}): string {
     let cleaned = markdown;
@@ -212,6 +230,9 @@ export abstract class BaseConverter {
 
   /**
    * Extract best practices from content
+   *
+   * @param sections - Parsed markdown sections
+   * @returns Array of best practice strings
    */
   protected extractBestPractices(sections: Record<string, string>): string[] {
     const practices: string[] = [];
@@ -238,6 +259,9 @@ export abstract class BaseConverter {
 
   /**
    * Extract common pitfalls/mistakes from content
+   *
+   * @param sections - Parsed markdown sections
+   * @returns Array of pitfalls with mistake and solution
    */
   protected extractPitfalls(sections: Record<string, string>): Array<{ mistake: string; solution: string }> {
     const pitfalls: Array<{ mistake: string; solution: string }> = [];
@@ -264,6 +288,8 @@ export abstract class BaseConverter {
 
   /**
    * Get default output directory for this converter
+   *
+   * @returns Default output directory path
    */
   getDefaultOutputDir(): string {
     return this.options.outputDir || this.getMetadata().defaultOutputDir;

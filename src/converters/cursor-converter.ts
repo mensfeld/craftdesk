@@ -49,6 +49,10 @@ export class CursorConverter extends BaseConverter {
 
   /**
    * Build Cursor .mdc file content
+   *
+   * @param craft - Craft content
+   * @param sections - Parsed markdown sections
+   * @returns Formatted .mdc file content
    */
   private buildCursorMdc(craft: CraftContent, sections: Record<string, string>): string {
     const lines: string[] = [];
@@ -136,8 +140,12 @@ export class CursorConverter extends BaseConverter {
 
   /**
    * Infer file globs based on craft content
+   *
+   * @param craft - Craft content
+   * @param _sections - Parsed markdown sections (unused)
+   * @returns Array of glob patterns for file matching
    */
-  private inferGlobs(craft: CraftContent, sections: Record<string, string>): string[] {
+  private inferGlobs(craft: CraftContent, _sections: Record<string, string>): string[] {
     const globs: string[] = [];
     const content = craft.mainContent.toLowerCase();
 
@@ -181,6 +189,9 @@ export class CursorConverter extends BaseConverter {
 
   /**
    * Format craft name into readable title
+   *
+   * @param name - Craft name in kebab-case
+   * @returns Formatted title with capitalized words
    */
   private formatTitle(name: string): string {
     return name
@@ -278,6 +289,12 @@ export class CursorLegacyConverter extends BaseConverter {
     return files;
   }
 
+  /**
+   * Format craft name into readable title
+   *
+   * @param name - Craft name in kebab-case
+   * @returns Formatted title with capitalized words
+   */
   private formatTitle(name: string): string {
     return name
       .split('-')
