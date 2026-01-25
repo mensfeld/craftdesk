@@ -6,6 +6,11 @@ import type { CraftContent, ConvertedContent, ConverterMetadata } from '../types
  * https://docs.cursor.com/context/rules
  */
 export class CursorConverter extends BaseConverter {
+  /**
+   * Get converter metadata
+   *
+   * @returns Converter metadata
+   */
   getMetadata(): ConverterMetadata {
     return {
       name: 'Cursor Converter',
@@ -16,6 +21,12 @@ export class CursorConverter extends BaseConverter {
     };
   }
 
+  /**
+   * Convert craft to Cursor .mdc format
+   *
+   * @param craft - Craft content to convert
+   * @returns Array of converted files
+   */
   async convert(craft: CraftContent): Promise<ConvertedContent[]> {
     const files: ConvertedContent[] = [];
 
@@ -183,6 +194,11 @@ export class CursorConverter extends BaseConverter {
  * Converts CraftDesk crafts to legacy Cursor .cursorrules format
  */
 export class CursorLegacyConverter extends BaseConverter {
+  /**
+   * Get converter metadata
+   *
+   * @returns Converter metadata
+   */
   getMetadata(): ConverterMetadata {
     return {
       name: 'Cursor Legacy Converter',
@@ -193,6 +209,12 @@ export class CursorLegacyConverter extends BaseConverter {
     };
   }
 
+  /**
+   * Convert craft to legacy .cursorrules format
+   *
+   * @param craft - Craft content to convert
+   * @returns Array of converted files
+   */
   async convert(craft: CraftContent): Promise<ConvertedContent[]> {
     const files: ConvertedContent[] = [];
 

@@ -6,6 +6,11 @@ import type { CraftContent, ConvertedContent, ConverterMetadata } from '../types
  * https://docs.continue.dev/customize/deep-dives/prompts
  */
 export class ContinueConverter extends BaseConverter {
+  /**
+   * Get converter metadata
+   *
+   * @returns Converter metadata
+   */
   getMetadata(): ConverterMetadata {
     return {
       name: 'Continue Converter',
@@ -16,6 +21,12 @@ export class ContinueConverter extends BaseConverter {
     };
   }
 
+  /**
+   * Convert craft to Continue.dev format
+   *
+   * @param craft - Craft content to convert
+   * @returns Array of converted files (prompt + rule)
+   */
   async convert(craft: CraftContent): Promise<ConvertedContent[]> {
     const files: ConvertedContent[] = [];
 

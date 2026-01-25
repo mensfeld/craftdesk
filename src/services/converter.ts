@@ -17,6 +17,10 @@ import type { CraftDeskJson } from '../types/craftdesk-json';
 export class ConverterService {
   /**
    * Create a converter instance for the specified format
+   *
+   * @param options - Conversion options
+   * @returns Converter instance
+   * @throws Error if format is not supported
    */
   private createConverter(options: ConversionOptions): BaseConverter {
     switch (options.format) {
@@ -88,6 +92,10 @@ export class ConverterService {
 
   /**
    * Convert and write output files
+   * @param craftDir - Directory containing the craft
+   * @param options - Conversion options
+   * @param outputDir - Optional output directory
+   * @returns Conversion result
    */
   async convertAndWrite(
     craftDir: string,
@@ -132,6 +140,10 @@ export class ConverterService {
 
   /**
    * Convert all installed crafts
+   * @param claudeDir - Claude directory path
+   * @param options - Conversion options
+   * @param outputDir - Optional output directory
+   * @returns Array of craft names with conversion results
    */
   async convertAllInstalled(
     claudeDir: string,
@@ -183,6 +195,7 @@ export class ConverterService {
 
   /**
    * Get list of supported formats
+   * @returns Array of supported formats with descriptions
    */
   getSupportedFormats(): Array<{ format: SupportedFormat; description: string }> {
     return [

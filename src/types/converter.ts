@@ -2,8 +2,14 @@
  * Types for format conversion system
  */
 
+/**
+ * Supported output formats for conversion
+ */
 export type SupportedFormat = 'claude' | 'cursor' | 'cursor-legacy' | 'continue';
 
+/**
+ * Options for format conversion
+ */
 export interface ConversionOptions {
   /** Target format to convert to */
   format: SupportedFormat;
@@ -15,9 +21,12 @@ export interface ConversionOptions {
   mergeMode?: 'append' | 'overwrite' | 'skip';
 
   /** Format-specific options */
-  formatOptions?: Record<string, any>;
+  formatOptions?: Record<string, unknown>;
 }
 
+/**
+ * Represents converted file content
+ */
 export interface ConvertedContent {
   /** Relative file path where content should be written */
   filePath: string;
@@ -29,6 +38,9 @@ export interface ConvertedContent {
   type: 'rule' | 'prompt' | 'config';
 }
 
+/**
+ * Represents craft content to be converted
+ */
 export interface CraftContent {
   /** Craft name */
   name: string;
@@ -67,6 +79,9 @@ export interface CraftContent {
   additionalFiles?: string[];
 }
 
+/**
+ * Result of a conversion operation
+ */
 export interface ConversionResult {
   /** Whether conversion succeeded */
   success: boolean;
@@ -87,6 +102,9 @@ export interface ConversionResult {
   targetFormat: SupportedFormat;
 }
 
+/**
+ * Metadata about a converter
+ */
 export interface ConverterMetadata {
   /** Converter name */
   name: string;

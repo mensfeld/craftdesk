@@ -5,6 +5,11 @@ import { logger } from '../utils/logger';
 import { ConverterService } from '../services/converter';
 import type { SupportedFormat, ConversionOptions } from '../types/converter';
 
+/**
+ * Create the convert command for format conversion
+ *
+ * @returns The configured convert command
+ */
 export function createConvertCommand(): Command {
   const command = new Command('convert');
 
@@ -17,7 +22,7 @@ export function createConvertCommand(): Command {
     .option('--claude-dir <dir>', 'Claude directory path (default: .claude)', '.claude')
     .option('-m, --merge-mode <mode>', 'How to handle existing files: overwrite, append, skip', 'overwrite')
     .option('--list-formats', 'List supported output formats')
-    .action(async (craftPath: string | undefined, options: any) => {
+    .action(async (craftPath: string | undefined, options: Record<string, unknown>) => {
       try {
         const converterService = new ConverterService();
 

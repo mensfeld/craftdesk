@@ -3,8 +3,7 @@ import type {
   ConvertedContent,
   ConversionOptions,
   ConversionResult,
-  ConverterMetadata,
-  SupportedFormat
+  ConverterMetadata
 } from '../types/converter';
 
 /**
@@ -26,6 +25,9 @@ export abstract class BaseConverter {
   /**
    * Convert craft to target format
    * Subclasses must implement this method
+   *
+   * @param craft - The craft content to convert
+   * @returns Array of converted file contents
    */
   abstract convert(craft: CraftContent): Promise<ConvertedContent[]>;
 
