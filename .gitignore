@@ -37,3 +37,8 @@ yarn-error.log*
 
 # CraftDesk specific
 .craftdesk/
+.claude/
+*.md
+!README.md
+!CHANGELOG.md
+!LICENSE.md

@@ -22,7 +22,14 @@ export function createConvertCommand(): Command {
     .option('--claude-dir <dir>', 'Claude directory path (default: .claude)', '.claude')
     .option('-m, --merge-mode <mode>', 'How to handle existing files: overwrite, append, skip', 'overwrite')
     .option('--list-formats', 'List supported output formats')
-    .action(async (craftPath: string | undefined, options: Record<string, unknown>) => {
+    .action(async (craftPath: string | undefined, options: {
+      to?: string;
+      output?: string;
+      all?: boolean;
+      claudeDir?: string;
+      mergeMode?: string;
+      listFormats?: boolean;
+    }) => {
       try {
         const converterService = new ConverterService();
 
@@ -45,7 +52,7 @@ export function createConvertCommand(): Command {
 
         // Validate format
         const supportedFormats = converterService.getSupportedFormats().map(f => f.format);
-        if (!supportedFormats.includes(options.to)) {
+        if (!supportedFormats.includes(options.to as SupportedFormat)) {
           logger.error(`Error: Unsupported format '${options.to}'`);
           logger.info(`Supported formats: ${supportedFormats.join(', ')}`);
           process.exit(1);
@@ -55,14 +62,14 @@ export function createConvertCommand(): Command {
         const conversionOptions: ConversionOptions = {
           format: options.to as SupportedFormat,
           outputDir: options.output,
-          mergeMode: options.mergeMode
+          mergeMode: options.mergeMode as 'overwrite' | 'append' | 'skip' | undefined
         };
 
         // Convert all installed crafts
         if (options.all) {
           logger.info(`Converting all installed crafts to ${options.to} format...`);
 
-          const claudeDir = path.resolve(process.cwd(), options.claudeDir);
+          const claudeDir = path.resolve(process.cwd(), options.claudeDir || '.claude');
 
           if (!await fs.pathExists(claudeDir)) {
             logger.error(`Error: Claude directory not found: ${claudeDir}`);
