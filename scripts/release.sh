@@ -20,32 +20,32 @@ fi
 # Ensure we're on master
 CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" != "master" ]; then
-  echo "❌ Error: Must be on master branch to create release"
+  echo "Error: Error: Must be on master branch to create release"
   echo "Current branch: $CURRENT_BRANCH"
   exit 1
 fi
 
 # Ensure working directory is clean
 if [ -n "$(git status --porcelain)" ]; then
-  echo "❌ Error: Working directory has uncommitted changes"
+  echo "Error: Error: Working directory has uncommitted changes"
   git status --short
   exit 1
 fi
 
 # Pull latest
-echo "📥 Pulling latest changes..."
+echo "Pulling latest changes..."
 git pull
 
 # Bump version
-echo "📦 Bumping version ($VERSION_TYPE)..."
+echo "Bumping version ($VERSION_TYPE)..."
 npm version $VERSION_TYPE --no-git-tag-version
 
 NEW_VERSION=$(node -p "require('./package.json').version")
 
 echo ""
-echo "🎯 New version: $NEW_VERSION"
+echo "New version: $NEW_VERSION"
 echo ""
-echo "📝 Please update CHANGELOG.md with changes for v$NEW_VERSION"
+echo "Please update CHANGELOG.md with changes for v$NEW_VERSION"
 echo "   Add a new section at the top:"
 echo ""
 echo "   ## [$NEW_VERSION] - $(date +%Y-%m-%d)"
@@ -59,25 +59,25 @@ if [ -n "$EDITOR" ]; then
 fi
 
 # Commit version bump
-echo "💾 Committing version bump..."
+echo "Committing version bump..."
 git add package.json CHANGELOG.md
 git commit -m "Bump version to $NEW_VERSION"
 
 # Push to master
-echo "⬆️  Pushing to master..."
+echo "Pushing to master..."
 git push
 
 # Create GitHub release
-echo "🚀 Creating GitHub release..."
+echo "Creating GitHub release..."
 gh release create "v$NEW_VERSION" \
   --title "Release v$NEW_VERSION" \
   --notes "See [CHANGELOG.md](https://github.com/mensfeld/craftdesk/blob/master/CHANGELOG.md#${NEW_VERSION//.}) for details." \
   --verify-tag
 
 echo ""
-echo "✅ Release v$NEW_VERSION created!"
-echo "🎉 GitHub Actions will automatically publish to NPM with provenance"
+echo "Release v$NEW_VERSION created!"
+echo "GitHub Actions will automatically publish to NPM with provenance"
 echo ""
-echo "📦 NPM Package: https://www.npmjs.com/package/craftdesk"
-echo "📋 GitHub Release: https://github.com/mensfeld/craftdesk/releases/tag/v$NEW_VERSION"
-echo "🔄 Workflow: https://github.com/mensfeld/craftdesk/actions/workflows/publish.yml"
+echo "NPM Package: https://www.npmjs.com/package/craftdesk"
+echo "GitHub Release: https://github.com/mensfeld/craftdesk/releases/tag/v$NEW_VERSION"
+echo "Workflow: https://github.com/mensfeld/craftdesk/actions/workflows/publish.yml"

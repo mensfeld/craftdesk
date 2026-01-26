@@ -38,6 +38,9 @@ Thumbs.db
 .craftdesk/
 .claude/
 
+# Development guides (not needed by users)
+NPM_PUBLISHING_GUIDE.md
+
 # Keep these in the package
 !README.md
 !CHANGELOG.md

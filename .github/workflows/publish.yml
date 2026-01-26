@@ -67,10 +67,10 @@ jobs:
 
       - name: Create summary
         run: |
-          echo "## 🚀 Published to NPM" >> $GITHUB_STEP_SUMMARY
+          echo "## Published to NPM" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Package:** craftdesk@${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** https://www.npmjs.com/package/craftdesk" >> $GITHUB_STEP_SUMMARY
-          echo "**Provenance:** ✅ Enabled (OIDC-signed)" >> $GITHUB_STEP_SUMMARY
+          echo "**Provenance:** Enabled (OIDC-signed)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Install with: \`npm install -g craftdesk@${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY

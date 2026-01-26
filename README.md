@@ -1592,7 +1592,7 @@ The script will:
 2. Prompt you to update CHANGELOG.md
 3. Commit and push changes
 4. Create GitHub release
-5. GitHub Actions automatically publishes to NPM with provenance ✅
+5. GitHub Actions automatically publishes to NPM with provenance
 
 **Manual process:**
 ```bash
