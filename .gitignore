@@ -42,3 +42,4 @@ yarn-error.log*
 !README.md
 !CHANGELOG.md
 !LICENSE.md
+!NPM_PUBLISHING_GUIDE.md

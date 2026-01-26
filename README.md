@@ -1578,10 +1578,32 @@ npm test
 
 ### Publishing
 
+CraftDesk uses automated NPM publishing via GitHub Actions with provenance attestation.
+
+**Quick release:**
+```bash
+./scripts/release.sh patch   # 0.3.0 → 0.3.1
+./scripts/release.sh minor   # 0.3.0 → 0.4.0
+./scripts/release.sh major   # 0.3.0 → 1.0.0
+```
+
+The script will:
+1. Bump version in package.json
+2. Prompt you to update CHANGELOG.md
+3. Commit and push changes
+4. Create GitHub release
+5. GitHub Actions automatically publishes to NPM with provenance
+
+**Manual process:**
 ```bash
 npm version patch
-npm publish
+git add package.json CHANGELOG.md
+git commit -m "Bump to 0.3.1"
+git push
+gh release create v0.3.1 --title "v0.3.1" --generate-notes
 ```
+
+See [NPM_PUBLISHING_GUIDE.md](./NPM_PUBLISHING_GUIDE.md) for complete setup instructions.
 
 ---
 

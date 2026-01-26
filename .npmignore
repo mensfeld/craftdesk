@@ -1,0 +1,49 @@
+# Source files (only publish compiled dist/)
+src/
+tsconfig.json
+*.ts
+!*.d.ts
+
+# Tests
+tests/
+vitest.config.ts
+.test-tmp/
+coverage/
+
+# CI/CD
+.github/
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation source
+docs/
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CraftDesk local directories
+.craftdesk/
+.claude/
+
+# Development guides (not needed by users)
+NPM_PUBLISHING_GUIDE.md
+
+# Keep these in the package
+!README.md
+!CHANGELOG.md
+!LICENSE.md
+!dist/
+!bin/

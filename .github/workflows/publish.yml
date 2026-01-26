@@ -1,0 +1,76 @@
+name: Publish to NPM
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty to use package.json version)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write  # Required for NPM provenance attestation
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run type check
+        run: npx tsc --noEmit
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify build artifacts
+        run: |
+          test -f dist/index.js || exit 1
+          test -f bin/craftdesk.js || exit 1
+          echo "Build artifacts verified!"
+
+      # Optional: Bump version if input provided
+      - name: Bump version
+        if: github.event.inputs.version
+        run: npm version ${{ github.event.inputs.version }} --no-git-tag-version
+
+      - name: Publish to NPM with provenance
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Get published version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Create summary
+        run: |
+          echo "## Published to NPM" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** craftdesk@${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry:** https://www.npmjs.com/package/craftdesk" >> $GITHUB_STEP_SUMMARY
+          echo "**Provenance:** Enabled (OIDC-signed)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Install with: \`npm install -g craftdesk@${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY

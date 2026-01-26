@@ -6,6 +6,21 @@
   "bin": {
     "craftdesk": "./bin/craftdesk.js"
   },
+  "files": [
+    "dist/",
+    "bin/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mensfeld/craftdesk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mensfeld/craftdesk/issues"
+  },
+  "homepage": "https://github.com/mensfeld/craftdesk#readme",
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
