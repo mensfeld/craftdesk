@@ -18,6 +18,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: deployment
 
     steps:
       - name: Checkout code
@@ -58,8 +59,6 @@ jobs:
 
       - name: Publish to NPM with provenance
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Get published version
         id: version
