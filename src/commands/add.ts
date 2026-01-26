@@ -9,8 +9,33 @@ import { calculateFileChecksum } from '../utils/crypto';
 import { pluginResolver } from '../services/plugin-resolver';
 import { craftWrapper } from '../services/craft-wrapper';
 import { DependencyConfig } from '../types/craftdesk-json';
+import { LockEntry, CraftDeskLock } from '../types/craftdesk-lock';
 import fs from 'fs-extra';
 import os from 'os';
+
+/**
+ * Options for the add command
+ */
+interface AddCommandOptions {
+  saveDev?: boolean;
+  saveOptional?: boolean;
+  saveExact?: boolean;
+  type?: string;
+  asPlugin?: boolean;
+}
+
+/**
+ * Parsed git URL information
+ */
+interface ParsedGitUrl {
+  url: string;
+  name?: string;
+  file?: string;
+  path?: string;
+  tag?: string;
+  commit?: string;
+  branch?: string;
+}
 
 /**
  * Creates the 'add' command for adding and installing a new dependency
@@ -26,12 +51,12 @@ export function createAddCommand(): Command {
     .option('-E, --save-exact', 'Save exact version')
     .option('-t, --type <type>', 'Specify craft type (skill, agent, command, hook, plugin)')
     .option('--as-plugin', 'Wrap individual craft as a plugin')
-    .action(async (craftArg: string, options) => {
+    .action(async (craftArg: string, options: AddCommandOptions) => {
       await addCommand(craftArg, options);
     });
 }
 
-async function addCommand(craftArg: string, options: any): Promise<void> {
+async function addCommand(craftArg: string, options: AddCommandOptions): Promise<void> {
   try {
     // Read craftdesk.json
     const craftDeskJson = await readCraftDeskJson();
@@ -67,8 +92,8 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
     logger.info(`Adding ${craftName}...`);
 
     // Check if this is a git dependency
-    let depValue: string | any;
-    let lockEntry: any;
+    let depValue: string | DependencyConfig;
+    let lockEntry: LockEntry;
     let displayInfo: string;
 
     // Convert GitHub web URLs to git URLs automatically
@@ -102,7 +127,10 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
       const craftJson = resolvedGit.craftDeskJson;
 
       // Determine type: explicit option > craftdesk.json > inferred > default
-      const craftType = options.type || craftJson?.type || 'skill';
+      const craftType: 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection' =
+        (options.type as 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection') ||
+        (craftJson?.type as 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection') ||
+        'skill';
 
       lockEntry = {
         version: craftJson?.version || gitInfo.tag || gitInfo.branch || 'HEAD',
@@ -116,7 +144,7 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
         ...(resolvedGit.resolvedCommit && { commit: resolvedGit.resolvedCommit }),
         ...(gitInfo.path && { path: gitInfo.path }),
         ...(gitInfo.file && { file: gitInfo.file }),
-        dependencies: craftJson?.dependencies || {}
+        dependencies: {}
       };
 
       craftName = craftJson?.name || gitInfo.name || path.basename(gitInfo.url, '.git');
@@ -189,7 +217,7 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
     }
 
     // Determine which dependency field to use
-    let depField: string;
+    let depField: 'dependencies' | 'devDependencies' | 'optionalDependencies';
     if (options.saveDev) {
       depField = 'devDependencies';
     } else if (options.saveOptional) {
@@ -204,7 +232,7 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
     }
 
     // Add to craftdesk.json
-    (craftDeskJson[depField] as Record<string, string | DependencyConfig>)[craftName] = depValue;
+    craftDeskJson[depField]![craftName] = depValue;
 
     // Save craftdesk.json
     await writeCraftDeskJson(craftDeskJson);
@@ -248,8 +276,9 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
         lockEntry.wrappedBy = `${craftName}-plugin`;
 
         logger.success(`Wrapped ${craftName} as plugin successfully!`);
-      } catch (error: any) {
-        logger.error(`Failed to wrap craft: ${error.message}`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error(`Failed to wrap craft: ${message}`);
         // Continue with normal installation
       }
     }
@@ -271,9 +300,10 @@ async function addCommand(craftArg: string, options: any): Promise<void> {
     await writeCraftDeskLock(lockfile);
 
     logger.success('Craft added successfully!');
-  } catch (error: any) {
+  } catch (error) {
     logger.failSpinner();
-    logger.error(`Failed to add craft: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to add craft: ${message}`);
     process.exit(1);
   }
 }
@@ -340,11 +370,11 @@ function normalizeGitHubUrl(url: string): string {
  * @returns Parsed git dependency information
  * @private
  */
-function parseGitUrl(urlString: string): any {
+function parseGitUrl(urlString: string): ParsedGitUrl {
   // Remove optional git+ prefix (npm-style format)
   let url = urlString.replace(/^git\+/, '');
 
-  const result: any = {};
+  const result: ParsedGitUrl = { url: '' };
 
   // Extract direct file path (e.g., #file:rspec-agent.md)
   if (url.includes('#file:')) {
@@ -419,9 +449,9 @@ async function isPlugin(craftDir: string): Promise<boolean> {
  */
 async function handlePluginInstall(
   craftName: string,
-  lockEntry: any,
+  lockEntry: LockEntry,
   craftDir: string,
-  lockfile: any
+  lockfile: CraftDeskLock
 ): Promise<void> {
   logger.startSpinner('Resolving plugin dependencies...');
 
@@ -454,17 +484,19 @@ async function handlePluginInstall(
 
       try {
         await installPluginDependency(depName, depInfo, lockfile);
-      } catch (error: any) {
-        logger.error(`Failed to install ${depName}: ${error.message}`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error(`Failed to install ${depName}: ${message}`);
         throw new Error(`Plugin dependency installation failed: ${depName}`);
       }
     }
 
     // Reset plugin resolver for next use
     pluginResolver.reset();
-  } catch (error: any) {
+  } catch (error) {
     logger.failSpinner();
-    logger.warn(`Failed to resolve plugin dependencies: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    logger.warn(`Failed to resolve plugin dependencies: ${message}`);
     logger.info('Plugin installed but dependencies may need manual installation');
   }
 }
@@ -479,10 +511,10 @@ async function handlePluginInstall(
  */
 async function installPluginDependency(
   depName: string,
-  depInfo: string | any,
-  lockfile: any
+  depInfo: string | DependencyConfig,
+  lockfile: CraftDeskLock
 ): Promise<void> {
-  let depLockEntry: any;
+  let depLockEntry: LockEntry;
 
   // Handle different dependency formats
   if (typeof depInfo === 'string') {
@@ -540,7 +572,8 @@ async function installPluginDependency(
 
     const resolvedGit = await gitResolver.resolveGitDependency(gitInfo);
     const craftJson = resolvedGit.craftDeskJson;
-    const craftType = craftJson?.type || 'skill';
+    const craftType: 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection' =
+      (craftJson?.type as 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection') || 'skill';
 
     depLockEntry = {
       version: craftJson?.version || gitInfo.tag || gitInfo.branch || 'HEAD',
@@ -554,7 +587,7 @@ async function installPluginDependency(
       ...(resolvedGit.resolvedCommit && { commit: resolvedGit.resolvedCommit }),
       ...(gitInfo.path && { path: gitInfo.path }),
       ...(gitInfo.file && { file: gitInfo.file }),
-      dependencies: craftJson?.dependencies || {},
+      dependencies: {},
       installedAs: 'dependency'
     };
 
@@ -631,7 +664,7 @@ async function installPluginDependency(
  */
 async function handleCraftWrapping(
   craftName: string,
-  lockEntry: any,
+  lockEntry: LockEntry,
   craftDir: string
 ): Promise<string> {
   logger.startSpinner(`Wrapping ${craftName} as plugin...`);
@@ -639,16 +672,17 @@ async function handleCraftWrapping(
   try {
     const wrappedDir = await craftWrapper.wrapCraft({
       craftName,
-      craftType: lockEntry.type,
+      craftType: lockEntry.type as 'skill' | 'agent' | 'command' | 'hook',
       craftPath: craftDir,
       version: lockEntry.version,
-      author: lockEntry.author
+      author: lockEntry.author || 'unknown'
     });
 
     logger.succeedSpinner(`Wrapped as plugin: ${craftName}-plugin`);
     return wrappedDir;
-  } catch (error: any) {
+  } catch (error) {
     logger.failSpinner();
-    throw new Error(`Failed to wrap craft as plugin: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to wrap craft as plugin: ${message}`);
   }
 }

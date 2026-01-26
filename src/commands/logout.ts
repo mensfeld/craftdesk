@@ -47,8 +47,9 @@ async function logoutCommand(options: LogoutOptions): Promise<void> {
       logger.info(`Not logged in to ${registryUrl}`);
     }
 
-  } catch (error: any) {
-    logger.error(error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(message);
     process.exit(1);
   }
 }

@@ -2,6 +2,13 @@ import { Command } from 'commander';
 import { readCraftDeskJson, readCraftDeskLock } from '../utils/file-system';
 import { logger } from '../utils/logger';
 import { installer } from '../services/installer';
+import { CraftDeskLock } from '../types/craftdesk-lock';
+
+interface ListCommandOptions {
+  tree?: boolean;
+  depth?: number;
+  json?: boolean;
+}
 
 /**
  * Creates the 'list' command for listing installed crafts
@@ -19,7 +26,7 @@ export function createListCommand(): Command {
     });
 }
 
-async function listCommand(options: any): Promise<void> {
+async function listCommand(options: ListCommandOptions): Promise<void> {
   try {
     // Read craftdesk.json for project info
     const craftDeskJson = await readCraftDeskJson();
@@ -136,8 +143,9 @@ async function listCommand(options: any): Promise<void> {
       logger.log('');
       logger.info(`Total: ${installedCrafts.length} crafts installed`);
     }
-  } catch (error: any) {
-    logger.error(`Failed to list crafts: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to list crafts: ${message}`);
     process.exit(1);
   }
 }
@@ -159,7 +167,11 @@ function _getTypeIcon(type: string): string {
   }
 }
 
-function displayDependencyTree(lockfile: any, maxDepth?: number): void {
+interface DependencyTreeNode {
+  dependencies?: Record<string, DependencyTreeNode | string>;
+}
+
+function displayDependencyTree(lockfile: CraftDeskLock, maxDepth?: number): void {
   logger.log('\nDependency tree:');
 
   if (!lockfile.tree) {
@@ -176,7 +188,7 @@ function displayDependencyTree(lockfile: any, maxDepth?: number): void {
   }
 }
 
-function displayTreeNode(key: string, node: any, depth: number, maxDepth: number, prefix: string, isLast: boolean): void {
+function displayTreeNode(key: string, node: DependencyTreeNode | string, depth: number, maxDepth: number, prefix: string, isLast: boolean): void {
   if (depth > maxDepth) return;
 
   const connector = isLast ? '└── ' : '├── ';

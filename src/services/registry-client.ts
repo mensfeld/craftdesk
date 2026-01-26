@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { configManager } from './config-manager';
 import { logger } from '../utils/logger';
+import type { CraftDeskLock, LockEntry } from '../types/craftdesk-lock';
 
 /**
  * Information about a craft from the registry
@@ -31,8 +32,8 @@ export interface UserInfo {
  * Response from dependency resolution API
  */
 export interface ResolveResponse {
-  resolved: Record<string, any>;
-  lockfile: any;
+  resolved: Record<string, LockEntry>;
+  lockfile: CraftDeskLock;
 }
 
 /**
@@ -90,11 +91,12 @@ export class RegistryClient {
 
       const response = await client.get(endpoint);
       return response.data.craft || response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
         logger.error(`Craft '${craftName}' not found in registry`);
       } else {
-        logger.error(`Failed to fetch craft info: ${error.message}`);
+        logger.error(`Failed to fetch craft info: ${message}`);
       }
       return null;
     }
@@ -115,8 +117,9 @@ export class RegistryClient {
     try {
       const response = await client.get(`/api/v1/crafts/${author}/${name}/versions`);
       return response.data.versions || [];
-    } catch (error: any) {
-      logger.error(`Failed to fetch versions: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error(`Failed to fetch versions: ${message}`);
       return [];
     }
   }
@@ -152,8 +155,9 @@ export class RegistryClient {
       logger.debug('Resolving dependencies via API...');
       const response = await client.post('/api/v1/resolve', { dependencies });
       return response.data;
-    } catch (error: any) {
-      logger.error(`Failed to resolve dependencies: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error(`Failed to resolve dependencies: ${message}`);
       return null;
     }
   }
@@ -191,8 +195,9 @@ export class RegistryClient {
       });
 
       logger.debug(`Downloaded craft archive to ${outputPath}`);
-    } catch (error: any) {
-      throw new Error(`Failed to download craft: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to download craft: ${message}`);
     }
   }
 
@@ -225,13 +230,14 @@ export class RegistryClient {
     const client = await this.getClient(registryUrl);
 
     try {
-      const params: any = { q: query };
+      const params: Record<string, string> = { q: query };
       if (type) params.type = type;
 
       const response = await client.get('/api/v1/crafts', { params });
       return response.data.crafts || [];
-    } catch (error: any) {
-      logger.error(`Failed to search crafts: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error(`Failed to search crafts: ${message}`);
       return [];
     }
   }
@@ -262,7 +268,7 @@ export class RegistryClient {
       changelog?: string;
       files: Array<{ path: string; content: string }>;
     }
-  ): Promise<any> {
+  ): Promise<{ success: boolean; download_url?: string; [key: string]: unknown }> {
     const registryUrl = await configManager.getDefaultRegistry();
     if (!registryUrl) {
       throw new Error('No registry configured. Add a registry to craftdesk.json first.');
@@ -279,15 +285,18 @@ export class RegistryClient {
       );
 
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        throw new Error('Authentication required. Run "craftdesk login" first.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Not authorized to publish to this craft.');
-      } else if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          throw new Error('Authentication required. Run "craftdesk login" first.');
+        } else if (error.response?.status === 403) {
+          throw new Error('Not authorized to publish to this craft.');
+        } else if (error.response?.data?.error) {
+          throw new Error(error.response.data.error);
+        }
       }
-      throw new Error(`Failed to create version: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to create version: ${message}`);
     }
   }
 
@@ -305,7 +314,7 @@ export class RegistryClient {
     author: string,
     name: string,
     options: { visibility?: 'public' | 'private' | 'organization' }
-  ): Promise<any> {
+  ): Promise<{ success: boolean; [key: string]: unknown }> {
     const registryUrl = await configManager.getDefaultRegistry();
     if (!registryUrl) {
       throw new Error('No registry configured. Add a registry to craftdesk.json first.');
@@ -322,17 +331,20 @@ export class RegistryClient {
       );
 
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        throw new Error('Authentication required. Run "craftdesk login" first.');
-      } else if (error.response?.status === 403) {
-        throw new Error('Not authorized to publish this craft.');
-      } else if (error.response?.status === 404) {
-        throw new Error('Craft not found.');
-      } else if (error.response?.data?.error) {
-        throw new Error(error.response.data.error);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          throw new Error('Authentication required. Run "craftdesk login" first.');
+        } else if (error.response?.status === 403) {
+          throw new Error('Not authorized to publish this craft.');
+        } else if (error.response?.status === 404) {
+          throw new Error('Craft not found.');
+        } else if (error.response?.data?.error) {
+          throw new Error(error.response.data.error);
+        }
       }
-      throw new Error(`Failed to publish craft: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to publish craft: ${message}`);
     }
   }
 
@@ -357,11 +369,12 @@ export class RegistryClient {
       });
 
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401) {
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
         throw new Error('Invalid or expired token');
       }
-      throw new Error(`Failed to verify token: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to verify token: ${message}`);
     }
   }
 

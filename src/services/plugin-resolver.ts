@@ -191,8 +191,9 @@ export class PluginResolver {
         return JSON.parse(content) as CraftDeskJson;
       }
       return null;
-    } catch (error: any) {
-      logger.debug(`Failed to read plugin manifest at ${manifestPath}: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.debug(`Failed to read plugin manifest at ${manifestPath}: ${message}`);
       return null;
     }
   }

@@ -52,8 +52,9 @@ export class SettingsManager {
 
       // Return default settings if file doesn't exist
       return this.createDefaultSettings();
-    } catch (error: any) {
-      logger.warn(`Failed to read settings file: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Failed to read settings file: ${message}`);
       logger.debug('Returning default settings');
       return this.createDefaultSettings();
     }
@@ -80,8 +81,9 @@ export class SettingsManager {
       );
 
       logger.debug(`Updated settings file: ${this.settingsPath}`);
-    } catch (error: any) {
-      logger.error(`Failed to write settings file: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error(`Failed to write settings file: ${message}`);
       throw error;
     }
   }
@@ -374,8 +376,9 @@ export class SettingsManager {
         valid: errors.length === 0,
         errors
       };
-    } catch (error: any) {
-      errors.push(`Failed to read settings: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push(`Failed to read settings: ${message}`);
       return { valid: false, errors };
     }
   }

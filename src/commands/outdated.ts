@@ -23,6 +23,12 @@ interface OutdatedInfo {
   updateType?: 'major' | 'minor' | 'patch' | 'commit';
 }
 
+interface OutdatedCommandOptions {
+  json?: boolean;
+  gitOnly?: boolean;
+  registryOnly?: boolean;
+}
+
 /**
  * Creates the outdated command for checking newer versions of installed crafts.
  *
@@ -39,7 +45,7 @@ export function createOutdatedCommand(): Command {
     });
 }
 
-async function outdatedCommand(options: any): Promise<void> {
+async function outdatedCommand(options: OutdatedCommandOptions): Promise<void> {
   try {
     // Read craftdesk.json for project info
     const craftDeskJson = await readCraftDeskJson();
@@ -84,8 +90,9 @@ async function outdatedCommand(options: any): Promise<void> {
         if (outdatedInfo) {
           outdatedList.push(outdatedInfo);
         }
-      } catch (error: any) {
-        logger.debug(`Failed to check ${name}: ${error.message}`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.debug(`Failed to check ${name}: ${message}`);
       }
     }
 
@@ -136,8 +143,9 @@ async function outdatedCommand(options: any): Promise<void> {
     logger.info('Run "craftdesk install" to update to wanted versions.');
     logger.info('Run "craftdesk add <craft>@latest" to update to latest version.');
 
-  } catch (error: any) {
-    logger.error(`Failed to check for updates: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to check for updates: ${message}`);
     process.exit(1);
   }
 }
@@ -176,8 +184,9 @@ async function checkRegistryUpdate(name: string, entry: LockEntry): Promise<Outd
       hasUpdate,
       updateType: hasUpdate ? getUpdateType(currentVersion, latestVersion) : undefined
     };
-  } catch (error: any) {
-    logger.debug(`Registry check failed for ${name}: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.debug(`Registry check failed for ${name}: ${message}`);
     return null;
   }
 }
@@ -231,8 +240,9 @@ async function checkGitUpdate(name: string, entry: LockEntry): Promise<OutdatedI
       hasUpdate,
       updateType: hasUpdate ? 'commit' : undefined
     };
-  } catch (error: any) {
-    logger.debug(`Git check failed for ${name}: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.debug(`Git check failed for ${name}: ${message}`);
     return {
       name,
       current: entry.tag || entry.commit?.substring(0, 7) || entry.version,
