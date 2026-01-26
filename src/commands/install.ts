@@ -99,7 +99,8 @@ async function installCommand(options: InstallCommandOptions): Promise<void> {
       logger.startSpinner('Fetching registry crafts...');
 
       for (const [name, entry] of Object.entries(resolution.resolved)) {
-        if (entry.needsResolution) {
+        // Check if this is a registry dependency that needs resolution
+        if (entry.resolved === 'registry' && entry.integrity === 'pending') {
           const craftInfo = await registryClient.getCraftInfo(name, entry.version, entry.registry);
           if (craftInfo) {
             // Require download_url from registry - no defaults for security
@@ -112,7 +113,7 @@ async function installCommand(options: InstallCommandOptions): Promise<void> {
             resolution.resolved[name] = {
               version: craftInfo.version,
               resolved: craftInfo.download_url,
-              integrity: craftInfo.integrity,
+              integrity: craftInfo.integrity || 'sha256-pending',
               type: craftInfo.type,
               author: craftInfo.author,
               dependencies: craftInfo.dependencies || {}

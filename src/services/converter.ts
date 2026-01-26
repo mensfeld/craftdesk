@@ -88,11 +88,15 @@ export class ConverterService {
     // Parse sections and examples
     const converter = this.createConverter(options);
     // BaseConverter has protected methods, accessing directly for internal use
-    if ('extractAllSections' in converter && typeof converter.extractAllSections === 'function') {
-      craftContent.sections = converter.extractAllSections(mainContent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ('extractAllSections' in converter && typeof (converter as any).extractAllSections === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      craftContent.sections = (converter as any).extractAllSections(mainContent);
     }
-    if ('extractExamples' in converter && typeof converter.extractExamples === 'function') {
-      craftContent.examples = converter.extractExamples(mainContent);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ('extractExamples' in converter && typeof (converter as any).extractExamples === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      craftContent.examples = (converter as any).extractExamples(mainContent);
     }
 
     // Convert

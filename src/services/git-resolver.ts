@@ -299,7 +299,7 @@ export class GitResolver {
    */
   async resolveAllDependencies(dependencies: Record<string, string | DependencyConfig>): Promise<{
     resolved: Record<string, LockEntry>;
-    lockfile: { version: string; lockfileVersion: number; crafts: Record<string, LockEntry> };
+    lockfile: { version: string; lockfileVersion: number; generatedAt: string; crafts: Record<string, LockEntry> };
   }> {
     const resolved: Record<string, LockEntry> = {};
     // Queue of dependencies to resolve (breadth-first traversal)
@@ -385,6 +385,7 @@ export class GitResolver {
       lockfile: {
         version: '1.0.0',
         lockfileVersion: 1,
+        generatedAt: new Date().toISOString(),
         crafts: resolved
       }
     };
