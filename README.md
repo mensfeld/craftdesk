@@ -157,6 +157,148 @@ A **craft** is any AI capability:
 - **Plugin** - Bundle of multiple crafts with dependencies and MCP server configuration
 - **Collection** - Curated group of related crafts that work together (e.g., rails-enterprise-stack)
 
+### Format Conversion
+
+**Convert CraftDesk crafts to other AI editor formats** for cross-platform use.
+
+**Supported Formats:**
+- **Cursor** - Modern `.mdc` format in `.cursor/rules/` directory
+- **Cursor Legacy** - Plain text `.cursorrules` format
+- **Continue.dev** - Prompt and rule files in `.continue/prompts/` and `.continue/rules/`
+
+**Why convert formats?**
+- **Use any AI editor** - Write once, deploy to Cursor, Continue, Windsurf, etc.
+- **Team flexibility** - Developers can use their preferred editors
+- **Maximum reach** - Distribute crafts to wider audience
+- **No lock-in** - Not tied to single platform
+
+**Basic Usage:**
+
+```bash
+# Convert a craft to Cursor format
+craftdesk convert ./my-craft --to cursor
+
+# Convert to Continue.dev format
+craftdesk convert ./my-craft --to continue
+
+# Convert to legacy .cursorrules
+craftdesk convert ./my-craft --to cursor-legacy
+
+# Convert all installed crafts
+craftdesk convert --all --to cursor --output .cursor/rules
+
+# List available formats
+craftdesk convert --list-formats
+```
+
+**Example: Rails Skill → Cursor**
+
+Your `SKILL.md`:
+```markdown
+---
+name: ruby-on-rails
+description: Ruby on Rails development
+---
+
+## Instructions
+Expert knowledge of Rails framework...
+
+## Best Practices
+- Use Strong Parameters
+- Follow RESTful conventions
+```
+
+Converted to `.cursor/rules/ruby-on-rails.mdc`:
+```markdown
+---
+description: Ruby on Rails development
+globs:
+  - "**/*.rb"
+  - "**/*.erb"
+  - "**/*.haml"
+alwaysApply: true
+---
+
+# Ruby On Rails
+
+## Overview
+Expert knowledge of Rails framework...
+
+## Best Practices
+- Use Strong Parameters
+- Follow RESTful conventions
+```
+
+**Advanced Options:**
+
+```bash
+# Merge modes
+craftdesk convert --to cursor --merge-mode skip      # Skip existing files
+craftdesk convert --to cursor --merge-mode append    # Append to existing
+craftdesk convert --to cursor --merge-mode overwrite # Overwrite (default)
+
+# Custom output directory
+craftdesk convert --to cursor --output /custom/path
+
+# Convert specific craft type
+craftdesk convert .claude/skills/ruby-rails --to continue
+```
+
+**What Gets Converted:**
+
+| Section | Cursor | Continue |
+|---------|--------|----------|
+| Instructions | ✓ Overview | ✓ Context |
+| Code Patterns | ✓ Code Patterns | ✓ Patterns to Follow |
+| Examples | ✓ Examples | ✓ Examples |
+| Best Practices | ✓ Best Practices | ✓ Best Practices |
+| Pitfalls | ✓ Mistakes to Avoid | ✓ Mistakes to Avoid |
+| Workflows | ✓ Common Workflows | ✓ Step-by-Step Workflows |
+
+**Language-Specific Features:**
+
+Cursor converter automatically infers file globs based on content:
+- **Ruby/Rails** → `**/*.rb`, `**/*.erb`, config files
+- **TypeScript** → `**/*.ts`, `**/*.tsx`
+- **Python** → `**/*.py`
+- **JavaScript** → `**/*.js`, `**/*.jsx`
+- **And more...** (Go, Rust, PHP, Java, etc.)
+
+Continue converter generates:
+- **Prompts** (invokable with `/`) - for manual use
+- **Rules** (automatic) - applied to all matching files
+
+**CI/CD Integration:**
+
+```yaml
+# .github/workflows/convert-crafts.yml
+name: Convert Crafts to Multiple Formats
+on: [push]
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install CraftDesk
+        run: npm install -g craftdesk
+      - name: Convert to Cursor
+        run: craftdesk convert --all --to cursor --output dist/cursor
+      - name: Convert to Continue
+        run: craftdesk convert --all --to continue --output dist/continue
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: converted-crafts
+          path: dist/
+```
+
+**Tips:**
+
+1. **Test conversions** - Always verify converted files work in target editor
+2. **Preserve originals** - Keep SKILL.md as source of truth
+3. **Update together** - Convert after each craft update
+4. **Version control** - Commit both source and converted formats
+
 ### Collections
 
 **Collections** are crafts that group related capabilities together. Instead of installing 6 individual crafts, install one collection that includes all of them.

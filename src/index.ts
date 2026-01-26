@@ -14,6 +14,7 @@ import { createPublishCommand } from './commands/publish';
 import { createLoginCommand } from './commands/login';
 import { createLogoutCommand } from './commands/logout';
 import { createWhoamiCommand } from './commands/whoami';
+import { createConvertCommand } from './commands/convert';
 import { logger } from './utils/logger';
 
 const program = new Command();
@@ -40,6 +41,7 @@ program.addCommand(createPublishCommand());
 program.addCommand(createLoginCommand());
 program.addCommand(createLogoutCommand());
 program.addCommand(createWhoamiCommand());
+program.addCommand(createConvertCommand());
 
 // Add aliases
 program.command('i', { hidden: true }).action(() => {
@@ -68,6 +70,9 @@ if (process.argv.length === 2) {
   logger.log('  craftdesk outdated     Check for newer versions');
   logger.log('  craftdesk update       Update crafts to newer versions');
   logger.log('  craftdesk publish      Publish a craft to the registry');
+  logger.log('');
+  logger.log('Format Conversion:');
+  logger.log('  craftdesk convert      Convert crafts to other AI editor formats');
   logger.log('');
   logger.log('Authentication:');
   logger.log('  craftdesk login        Authenticate with a registry');
