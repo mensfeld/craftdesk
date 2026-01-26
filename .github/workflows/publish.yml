@@ -41,7 +41,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Run linter
-        run: npm run lint
+        run: npm run lint -- --max-warnings=10
 
       - name: Build
         run: npm run build
