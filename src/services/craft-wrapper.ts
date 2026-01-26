@@ -143,8 +143,9 @@ export class CraftWrapper {
       });
 
       logger.debug(`Copied craft files from ${sourcePath} to ${destPath}`);
-    } catch (error: any) {
-      throw new Error(`Failed to copy craft files: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to copy craft files: ${message}`);
     }
   }
 
@@ -271,7 +272,7 @@ The wrapped ${craftType} is available as part of this plugin and can be used lik
 
 ### ${craftType === 'skill' ? 'Skill' : craftType === 'agent' ? 'Agent' : craftType === 'command' ? 'Command' : 'Hook'} Reference
 
-See the original ${craftType} documentation in the \`${this.getTypeDirectory(craftType as any)}/${craftName}/\` directory.
+See the original ${craftType} documentation in the \`${this.getTypeDirectory(craftType as 'skill' | 'agent' | 'command' | 'hook')}/${craftName}/\` directory.
 
 ## Metadata
 

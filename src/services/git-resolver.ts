@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import { execSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { CraftDeskJson, DependencyConfig } from '../types/craftdesk-json';
+import type { LockEntry } from '../types/craftdesk-lock';
 
 /**
  * Information about a git dependency
@@ -128,7 +129,7 @@ export class GitResolver {
           let craftType: 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection' | undefined;
           let craftName: string | undefined;
           let craftVersion: string | undefined;
-          let craftDeps: Record<string, any> | undefined;
+          let craftDeps: Record<string, string | DependencyConfig> | undefined;
 
           // Check for craftdesk.json in same directory as file
           const fileDir = path.dirname(gitInfo.file);
@@ -297,10 +298,10 @@ export class GitResolver {
    * ```
    */
   async resolveAllDependencies(dependencies: Record<string, string | DependencyConfig>): Promise<{
-    resolved: Record<string, any>;
-    lockfile: any;
+    resolved: Record<string, LockEntry>;
+    lockfile: { version: string; lockfileVersion: number; generatedAt: string; crafts: Record<string, LockEntry> };
   }> {
-    const resolved: Record<string, any> = {};
+    const resolved: Record<string, LockEntry> = {};
     // Queue of dependencies to resolve (breadth-first traversal)
     const toResolve: Array<[string, string | DependencyConfig]> = Object.entries(dependencies);
     // Track visited packages to prevent infinite loops from circular dependencies
@@ -326,20 +327,31 @@ export class GitResolver {
           file: dep.file
         });
 
-        resolved[name] = {
+        const lockEntry: LockEntry = {
           version: gitInfo.craftDeskJson?.version || '0.0.0',
           resolved: gitInfo.url,
           integrity: gitInfo.resolvedCommit || 'git',
           type: gitInfo.craftDeskJson?.type || 'skill',
-          author: gitInfo.craftDeskJson?.author || 'git',
+          author: gitInfo.craftDeskJson?.author,
           git: gitInfo.url,
           ...(gitInfo.branch && { branch: gitInfo.branch }),
           ...(gitInfo.tag && { tag: gitInfo.tag }),
           ...(gitInfo.commit && { commit: gitInfo.resolvedCommit }),
           ...(gitInfo.path && { path: gitInfo.path }),
-          ...(gitInfo.file && { file: gitInfo.file }),
-          dependencies: gitInfo.craftDeskJson?.dependencies || {}
+          ...(gitInfo.file && { file: gitInfo.file })
         };
+
+        // Only add dependencies if they exist
+        if (gitInfo.craftDeskJson?.dependencies && Object.keys(gitInfo.craftDeskJson.dependencies).length > 0) {
+          lockEntry.dependencies = Object.fromEntries(
+            Object.entries(gitInfo.craftDeskJson.dependencies).map(([k, v]) => {
+              const versionStr = typeof v === 'string' ? v : v.version || '*';
+              return [k, versionStr];
+            })
+          );
+        }
+
+        resolved[name] = lockEntry;
 
         // Add transitive dependencies to the resolution queue
         // This enables recursive dependency resolution
@@ -352,12 +364,18 @@ export class GitResolver {
           }
         }
       } else {
-        // Registry dependency - mark for resolution by registry client
+        // Registry dependency - create placeholder entry for resolution by registry client
         // The actual version resolution happens via the registry API
+        const version = typeof dep === 'string' ? dep : (dep.version || '*');
+        const registry = typeof dep === 'object' ? dep.registry : undefined;
+
+        // Create a minimal LockEntry that will be filled in by registry resolution
         resolved[name] = {
-          needsResolution: true,
-          version: typeof dep === 'string' ? dep : dep.version,
-          registry: typeof dep === 'object' ? dep.registry : undefined
+          version,
+          resolved: registry || 'registry',
+          integrity: 'pending',
+          type: 'skill', // Default, will be updated by registry
+          ...(registry && { registry })
         };
       }
     }
@@ -367,6 +385,7 @@ export class GitResolver {
       lockfile: {
         version: '1.0.0',
         lockfileVersion: 1,
+        generatedAt: new Date().toISOString(),
         crafts: resolved
       }
     };

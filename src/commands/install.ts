@@ -5,6 +5,13 @@ import { registryClient } from '../services/registry-client';
 import { gitResolver } from '../services/git-resolver';
 import { installer } from '../services/installer';
 import { CraftDeskLock } from '../types/craftdesk-lock';
+import { DependencyConfig } from '../types/craftdesk-json';
+
+interface InstallCommandOptions {
+  lockfile?: boolean;
+  noLockfile?: boolean;
+  production?: boolean;
+}
 
 /**
  * Creates the 'install' command for installing all dependencies from craftdesk.json
@@ -21,7 +28,7 @@ export function createInstallCommand(): Command {
     });
 }
 
-async function installCommand(options: any): Promise<void> {
+async function installCommand(options: InstallCommandOptions): Promise<void> {
   try {
     // Read craftdesk.json
     const craftDeskJson = await readCraftDeskJson();
@@ -72,7 +79,7 @@ async function installCommand(options: any): Promise<void> {
       }
 
       // Collect all dependencies (including devDependencies if not --production)
-      const allDependencies: Record<string, any> = { ...rawDependencies };
+      const allDependencies: Record<string, string | DependencyConfig> = { ...rawDependencies };
 
       if (!options.production && craftDeskJson.devDependencies) {
         Object.assign(allDependencies, craftDeskJson.devDependencies);
@@ -92,7 +99,8 @@ async function installCommand(options: any): Promise<void> {
       logger.startSpinner('Fetching registry crafts...');
 
       for (const [name, entry] of Object.entries(resolution.resolved)) {
-        if (entry.needsResolution) {
+        // Check if this is a registry dependency that needs resolution
+        if (entry.resolved === 'registry' && entry.integrity === 'pending') {
           const craftInfo = await registryClient.getCraftInfo(name, entry.version, entry.registry);
           if (craftInfo) {
             // Require download_url from registry - no defaults for security
@@ -105,7 +113,7 @@ async function installCommand(options: any): Promise<void> {
             resolution.resolved[name] = {
               version: craftInfo.version,
               resolved: craftInfo.download_url,
-              integrity: craftInfo.integrity,
+              integrity: craftInfo.integrity || 'sha256-pending',
               type: craftInfo.type,
               author: craftInfo.author,
               dependencies: craftInfo.dependencies || {}
@@ -140,9 +148,10 @@ async function installCommand(options: any): Promise<void> {
         logger.log(`  • ${craft.name}@${craft.version} (${craft.type})`);
       }
     }
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     logger.failSpinner();
-    logger.error(`Installation failed: ${error.message}`);
+    logger.error(`Installation failed: ${message}`);
     process.exit(1);
   }
 }

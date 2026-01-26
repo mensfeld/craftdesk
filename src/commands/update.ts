@@ -13,6 +13,7 @@ import { registryClient } from '../services/registry-client';
 import { installer } from '../services/installer';
 import { configManager } from '../services/config-manager';
 import { LockEntry, CraftDeskLock } from '../types/craftdesk-lock';
+import { DependencyConfig } from '../types/craftdesk-json';
 import {
   isNewerVersion,
   sortTagsBySemver,
@@ -153,7 +154,8 @@ async function updateCommand(craftName: string | undefined, options: UpdateOptio
               craftDeskJson.dependencies[update.name] = newEntry.version;
             } else {
               // It's a DependencyConfig - update version field
-              (craftDeskJson.dependencies[update.name] as any).version = newEntry.version;
+              const depConfig = craftDeskJson.dependencies[update.name] as DependencyConfig;
+              depConfig.version = newEntry.version;
             }
           }
         }
@@ -162,8 +164,9 @@ async function updateCommand(craftName: string | undefined, options: UpdateOptio
           `Updated ${update.name}: ${colorize(update.current, 'red')} → ${colorize(newEntry.version, 'green')}`
         );
         successCount++;
-      } catch (error: any) {
-        logger.failSpinner(`Failed to update ${update.name}: ${error.message}`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.failSpinner(`Failed to update ${update.name}: ${message}`);
         errorCount++;
       }
     }
@@ -187,8 +190,9 @@ async function updateCommand(craftName: string | undefined, options: UpdateOptio
       logger.warn(`${errorCount} craft(s) failed to update`);
     }
 
-  } catch (error: any) {
-    logger.error(`Failed to update: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to update: ${message}`);
     process.exit(1);
   }
 }
@@ -220,8 +224,9 @@ async function findAvailableUpdates(
       if (updateInfo && updateInfo.current !== updateInfo.latest) {
         updates.push(updateInfo);
       }
-    } catch (error: any) {
-      logger.debug(`Failed to check ${name}: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.debug(`Failed to check ${name}: ${message}`);
     }
   }
 
@@ -252,8 +257,9 @@ async function checkRegistryUpdate(name: string, entry: LockEntry): Promise<Upda
       source: 'registry',
       lockEntry: entry
     };
-  } catch (error: any) {
-    logger.debug(`Registry check failed for ${name}: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.debug(`Registry check failed for ${name}: ${message}`);
     return null;
   }
 }
@@ -305,8 +311,9 @@ async function checkGitUpdate(name: string, entry: LockEntry): Promise<UpdateInf
       source: 'git',
       lockEntry: entry
     };
-  } catch (error: any) {
-    logger.debug(`Git check failed for ${name}: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.debug(`Git check failed for ${name}: ${message}`);
     return null;
   }
 }

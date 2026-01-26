@@ -3,6 +3,13 @@ import { registryClient } from '../services/registry-client';
 import { logger } from '../utils/logger';
 
 /**
+ * Options for the info command
+ */
+interface InfoCommandOptions {
+  json?: boolean;
+}
+
+/**
  * Creates the 'info' command for displaying detailed craft information
  *
  * @returns Commander command instance configured for showing craft info
@@ -17,7 +24,7 @@ export function createInfoCommand(): Command {
     });
 }
 
-async function infoCommand(craftName: string, options: any): Promise<void> {
+async function infoCommand(craftName: string, options: InfoCommandOptions): Promise<void> {
   try {
     logger.startSpinner(`Fetching info for ${craftName}...`);
 
@@ -62,9 +69,10 @@ async function infoCommand(craftName: string, options: any): Promise<void> {
       console.log(`To install: craftdesk add ${craftInfo.author}/${craftInfo.name}`);
       console.log(`To install specific version: craftdesk add ${craftInfo.author}/${craftInfo.name}@${craftInfo.version}`);
     }
-  } catch (error: any) {
+  } catch (error) {
     logger.failSpinner();
-    logger.error(`Failed to get craft info: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to get craft info: ${message}`);
     process.exit(1);
   }
 }

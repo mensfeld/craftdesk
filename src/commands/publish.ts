@@ -129,9 +129,10 @@ async function publishCommand(craftPath: string, options: PublishOptions): Promi
       logger.info(`Download: ${registryUrl}${result.download_url}`);
     }
 
-  } catch (error: any) {
+  } catch (error) {
     logger.failSpinner('Publication failed');
-    logger.error(error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(message);
     process.exit(1);
   }
 }

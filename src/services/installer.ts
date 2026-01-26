@@ -9,7 +9,7 @@ import { settingsManager } from './settings-manager';
 import { CraftDeskLock, LockEntry } from '../types/craftdesk-lock';
 import { ensureDir } from '../utils/file-system';
 import { verifyFileChecksum, formatChecksum } from '../utils/crypto';
-import type { PluginManifest } from '../types/claude-settings';
+import type { PluginManifest, MCPServerConfig } from '../types/claude-settings';
 
 /**
  * Handles installation of crafts from various sources
@@ -75,8 +75,9 @@ export class Installer {
         logger.updateSpinner(`Installing ${name}@${entry.version} (${installed + 1}/${crafts.length})`);
         await this.installCraft(name, entry);
         installed++;
-      } catch (error: any) {
-        logger.failSpinner(`Failed to install ${name}: ${error.message}`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.failSpinner(`Failed to install ${name}: ${message}`);
         throw error;
       }
     }
@@ -290,8 +291,9 @@ export class Installer {
       const zip = new AdmZip(archivePath);
       zip.extractAllTo(outputDir, /* overwrite */ true);
       logger.debug(`Extracted ZIP archive to ${outputDir}`);
-    } catch (error: any) {
-      throw new Error(`Failed to extract archive: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to extract archive: ${message}`);
     }
   }
 
@@ -393,17 +395,19 @@ export class Installer {
             try {
               const mcpConfig = await fs.readJson(mcpPath);
               for (const [serverName, serverConfig] of Object.entries(mcpConfig)) {
-                await settingsManager.registerMCPServer(serverName, serverConfig as any);
+                await settingsManager.registerMCPServer(serverName, serverConfig as MCPServerConfig);
                 logger.debug(`Registered MCP server from ${manifest.mcpServers}: ${serverName}`);
               }
-            } catch (error: any) {
-              logger.warn(`Failed to read MCP config from ${manifest.mcpServers}: ${error.message}`);
+            } catch (error) {
+              const message = error instanceof Error ? error.message : String(error);
+              logger.warn(`Failed to read MCP config from ${manifest.mcpServers}: ${message}`);
             }
           }
         }
       }
-    } catch (error: any) {
-      logger.warn(`Failed to register plugin ${name}: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Failed to register plugin ${name}: ${message}`);
       // Non-fatal - plugin is still installed, just not registered in settings
     }
   }
@@ -424,8 +428,9 @@ export class Installer {
         return JSON.parse(content) as PluginManifest;
       }
       return null;
-    } catch (error: any) {
-      logger.debug(`Failed to read plugin manifest: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.debug(`Failed to read plugin manifest: ${message}`);
       return null;
     }
   }
@@ -475,8 +480,9 @@ export class Installer {
           if (items.length > 0) {
             components[type] = items;
           }
-        } catch (error: any) {
-          logger.debug(`Failed to scan ${type} directory: ${error.message}`);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          logger.debug(`Failed to scan ${type} directory: ${message}`);
         }
       }
     }
@@ -502,8 +508,9 @@ export class Installer {
         try {
           await settingsManager.unregisterPlugin(name);
           logger.debug(`Unregistered plugin ${name} from settings`);
-        } catch (error: any) {
-          logger.warn(`Failed to unregister plugin: ${error.message}`);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          logger.warn(`Failed to unregister plugin: ${message}`);
         }
       }
 

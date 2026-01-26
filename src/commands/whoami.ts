@@ -53,12 +53,13 @@ async function whoamiCommand(options: WhoamiOptions): Promise<void> {
 
     logger.info(`Registry: ${registryUrl}`);
 
-  } catch (error: any) {
-    if (error.message.includes('Invalid') || error.message.includes('expired')) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes('Invalid') || message.includes('expired')) {
       logger.error('Token is invalid or expired');
       logger.info('Run "craftdesk login" to re-authenticate');
     } else {
-      logger.error(error.message);
+      logger.error(message);
     }
     process.exit(1);
   }

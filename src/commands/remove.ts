@@ -3,6 +3,10 @@ import { readCraftDeskJson, writeCraftDeskJson, readCraftDeskLock, writeCraftDes
 import { logger } from '../utils/logger';
 import { installer } from '../services/installer';
 
+interface RemoveCommandOptions {
+  force?: boolean;
+}
+
 /**
  * Creates the remove command for removing a craft dependency from the project.
  *
@@ -13,12 +17,12 @@ export function createRemoveCommand(): Command {
     .description('Remove a dependency')
     .argument('<craft>', 'Craft name to remove')
     .option('-f, --force', 'Force removal even if other crafts depend on it')
-    .action(async (craftName: string, options: any) => {
+    .action(async (craftName: string, options: RemoveCommandOptions) => {
       await removeCommand(craftName, options);
     });
 }
 
-async function removeCommand(craftName: string, options: any = {}): Promise<void> {
+async function removeCommand(craftName: string, options: RemoveCommandOptions = {}): Promise<void> {
   try {
     // Read craftdesk.json
     const craftDeskJson = await readCraftDeskJson();
@@ -120,8 +124,9 @@ async function removeCommand(craftName: string, options: any = {}): Promise<void
     }
 
     logger.success('Craft removed successfully!');
-  } catch (error: any) {
-    logger.error(`Failed to remove craft: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to remove craft: ${message}`);
     process.exit(1);
   }
 }

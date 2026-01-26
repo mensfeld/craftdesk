@@ -69,9 +69,10 @@ async function loginCommand(options: LoginOptions): Promise<void> {
 
     logger.info(`\nToken saved to ${configManager.getGlobalConfigPath()}`);
 
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     logger.failSpinner('Authentication failed');
-    logger.error(error.message);
+    logger.error(message);
     process.exit(1);
   }
 }

@@ -2,6 +2,12 @@ import { Command } from 'commander';
 import { registryClient } from '../services/registry-client';
 import { logger } from '../utils/logger';
 
+interface SearchCommandOptions {
+  type?: string;
+  limit?: string;
+  json?: boolean;
+}
+
 /**
  * Creates the search command for finding crafts in the registry by keyword.
  *
@@ -14,16 +20,16 @@ export function createSearchCommand(): Command {
     .option('-t, --type <type>', 'Filter by type (skill, agent, command, hook, plugin)')
     .option('-l, --limit <limit>', 'Maximum number of results', '20')
     .option('--json', 'Output as JSON')
-    .action(async (query: string, options) => {
+    .action(async (query: string, options: SearchCommandOptions) => {
       await searchCommand(query, options);
     });
 }
 
-async function searchCommand(query: string, options: any): Promise<void> {
+async function searchCommand(query: string, options: SearchCommandOptions): Promise<void> {
   try {
     logger.startSpinner(`Searching for "${query}"...`);
 
-    const results = await registryClient.searchCrafts(query, options.type);
+    const results = await registryClient.searchCrafts(query, options.type || undefined);
 
     if (!results || results.length === 0) {
       logger.failSpinner(`No crafts found matching "${query}"`);
@@ -33,7 +39,7 @@ async function searchCommand(query: string, options: any): Promise<void> {
     logger.succeedSpinner(`Found ${results.length} craft(s)`);
 
     // Apply limit
-    const limit = parseInt(options.limit) || 20;
+    const limit = parseInt(options.limit || '20', 10);
     const displayResults = results.slice(0, limit);
 
     if (options.json) {
@@ -54,9 +60,10 @@ async function searchCommand(query: string, options: any): Promise<void> {
 
       logger.info(`\nTo install a craft, run: craftdesk add <author>/<name>`);
     }
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     logger.failSpinner();
-    logger.error(`Search failed: ${error.message}`);
+    logger.error(`Search failed: ${message}`);
     process.exit(1);
   }
 }

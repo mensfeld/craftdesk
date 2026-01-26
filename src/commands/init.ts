@@ -5,6 +5,19 @@ import { writeCraftDeskJson, exists } from '../utils/file-system';
 import { logger } from '../utils/logger';
 
 /**
+ * Options for the init command
+ */
+interface InitCommandOptions {
+  yes?: boolean;
+  name?: string;
+  projectVersion?: string;
+  type?: string;
+  description?: string;
+  author?: string;
+  license?: string;
+}
+
+/**
  * Creates the 'init' command for initializing a new craftdesk.json file
  *
  * @returns Commander command instance configured for project initialization
@@ -24,7 +37,7 @@ export function createInitCommand(): Command {
     });
 }
 
-async function initCommand(options: any): Promise<void> {
+async function initCommand(options: InitCommandOptions): Promise<void> {
   try {
     // Check if craftdesk.json already exists
     if (await exists('craftdesk.json')) {
@@ -34,8 +47,8 @@ async function initCommand(options: any): Promise<void> {
 
     const config: CraftDeskJson = {
       name: options.name || path.basename(process.cwd()),
-      version: options.projectVersion,
-      type: options.type,
+      version: options.projectVersion || '1.0.0',
+      type: options.type as 'skill' | 'agent' | 'command' | 'hook' | 'plugin' | 'collection' | undefined,
       description: options.description || undefined,
       author: options.author || undefined,
       license: options.license || undefined,
@@ -53,8 +66,9 @@ async function initCommand(options: any): Promise<void> {
     logger.success('Created craftdesk.json');
     logger.info('Run "craftdesk install" to install dependencies');
     logger.info('Run "craftdesk add <craft>" to add dependencies');
-  } catch (error: any) {
-    logger.error(`Failed to initialize: ${error.message}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to initialize: ${message}`);
     process.exit(1);
   }
 }

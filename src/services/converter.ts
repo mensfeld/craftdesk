@@ -87,8 +87,17 @@ export class ConverterService {
 
     // Parse sections and examples
     const converter = this.createConverter(options);
-    craftContent.sections = (converter as any).extractAllSections(mainContent);
-    craftContent.examples = (converter as any).extractExamples(mainContent);
+    // BaseConverter has protected methods, accessing directly for internal use
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ('extractAllSections' in converter && typeof (converter as any).extractAllSections === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      craftContent.sections = (converter as any).extractAllSections(mainContent);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ('extractExamples' in converter && typeof (converter as any).extractExamples === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      craftContent.examples = (converter as any).extractExamples(mainContent);
+    }
 
     // Convert
     return await converter.convertWithValidation(craftContent);
@@ -96,6 +105,7 @@ export class ConverterService {
 
   /**
    * Convert and write output files
+   *
    * @param craftDir - Directory containing the craft
    * @param options - Conversion options
    * @param outputDir - Optional output directory
@@ -144,6 +154,7 @@ export class ConverterService {
 
   /**
    * Convert all installed crafts
+   *
    * @param claudeDir - Claude directory path
    * @param options - Conversion options
    * @param outputDir - Optional output directory
@@ -199,6 +210,7 @@ export class ConverterService {
 
   /**
    * Get list of supported formats
+   *
    * @returns Array of supported formats with descriptions
    */
   getSupportedFormats(): Array<{ format: SupportedFormat; description: string }> {

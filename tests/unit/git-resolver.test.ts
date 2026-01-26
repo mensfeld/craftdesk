@@ -268,15 +268,17 @@ describe('GitResolver', () => {
       const result = await gitResolver.resolveAllDependencies(dependencies);
 
       expect(result.resolved['ruby-on-rails']).toEqual({
-        needsResolution: true,
         version: '^7.0.0',
-        registry: undefined
+        resolved: 'registry',
+        integrity: 'pending',
+        type: 'skill'
       });
 
       expect(result.resolved['postgres-expert']).toEqual({
-        needsResolution: true,
         version: '^1.0.0',
-        registry: undefined
+        resolved: 'registry',
+        integrity: 'pending',
+        type: 'skill'
       });
     });
 
@@ -322,7 +324,8 @@ describe('GitResolver', () => {
       const result = await gitResolver.resolveAllDependencies(dependencies);
 
       // Check registry dependency
-      expect(result.resolved['ruby-on-rails'].needsResolution).toBe(true);
+      expect(result.resolved['ruby-on-rails'].resolved).toBe('registry');
+      expect(result.resolved['ruby-on-rails'].integrity).toBe('pending');
 
       // Check git dependency
       expect(result.resolved['custom-auth'].git).toBe('https://github.com/company/auth.git');
