@@ -9,7 +9,7 @@ import AdmZip from 'adm-zip';
 vi.mock('axios');
 vi.mock('adm-zip');
 vi.mock('child_process', () => ({
-  execSync: vi.fn()
+  execFileSync: vi.fn()
 }));
 vi.mock('../../src/utils/logger', () => ({
   logger: {

@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs-extra';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { CraftDeskJson, DependencyConfig } from '../types/craftdesk-json';
 import type { LockEntry } from '../types/craftdesk-lock';
@@ -99,23 +99,24 @@ export class GitResolver {
       // Clone the repository
       logger.debug(`Cloning ${gitInfo.url} to analyze dependencies...`);
 
-      let cloneCmd = `git clone --depth 1`;
+      const cloneArgs = ['clone', '--depth', '1'];
       if (gitInfo.branch) {
-        cloneCmd += ` -b ${gitInfo.branch}`;
+        cloneArgs.push('-b', gitInfo.branch);
       } else if (gitInfo.tag) {
-        cloneCmd += ` -b ${gitInfo.tag}`;
+        cloneArgs.push('-b', gitInfo.tag);
       }
-      cloneCmd += ` ${gitInfo.url} ${repoTempDir}`;
+      cloneArgs.push(gitInfo.url, repoTempDir);
 
-      execSync(cloneCmd, { stdio: 'pipe' });
+      execFileSync('git', cloneArgs, { stdio: 'pipe' });
 
       // If specific commit, checkout that commit
       if (gitInfo.commit) {
-        execSync(`cd ${repoTempDir} && git fetch --unshallow && git checkout ${gitInfo.commit}`, { stdio: 'pipe' });
+        execFileSync('git', ['fetch', '--unshallow'], { cwd: repoTempDir, stdio: 'pipe' });
+        execFileSync('git', ['checkout', gitInfo.commit], { cwd: repoTempDir, stdio: 'pipe' });
       }
 
       // Get the actual commit hash for lockfile
-      const resolvedCommit = execSync(`cd ${repoTempDir} && git rev-parse HEAD`, { encoding: 'utf8' }).trim();
+      const resolvedCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repoTempDir, encoding: 'utf8' }).trim();
       gitInfo.resolvedCommit = resolvedCommit;
 
       // Handle direct file reference

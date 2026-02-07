@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { readCraftDeskJson, readCraftDeskLock } from '../utils/file-system';
 import { logger } from '../utils/logger';
 import { registryClient } from '../services/registry-client';
@@ -257,7 +257,7 @@ async function checkGitUpdate(name: string, entry: LockEntry): Promise<OutdatedI
 
 function getRemoteTags(gitUrl: string): string[] {
   try {
-    const output = execSync(`git ls-remote --tags ${gitUrl} 2>/dev/null`, {
+    const output = execFileSync('git', ['ls-remote', '--tags', gitUrl], {
       encoding: 'utf8',
       timeout: 15000
     });
@@ -281,7 +281,7 @@ function getRemoteTags(gitUrl: string): string[] {
 
 function getRemoteHeadCommit(gitUrl: string, branch: string): string | null {
   try {
-    const output = execSync(`git ls-remote ${gitUrl} refs/heads/${branch} 2>/dev/null`, {
+    const output = execFileSync('git', ['ls-remote', gitUrl, `refs/heads/${branch}`], {
       encoding: 'utf8',
       timeout: 15000
     });

@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import path from 'path';
 import fs from 'fs-extra';
 import {
@@ -394,7 +394,7 @@ function displayUpdatePreview(updates: UpdateInfo[]): void {
 
 function getRemoteTags(gitUrl: string): string[] {
   try {
-    const output = execSync(`git ls-remote --tags ${gitUrl} 2>/dev/null`, {
+    const output = execFileSync('git', ['ls-remote', '--tags', gitUrl], {
       encoding: 'utf8',
       timeout: 15000
     });
@@ -417,7 +417,7 @@ function getRemoteTags(gitUrl: string): string[] {
 
 function getRemoteHeadCommit(gitUrl: string, branch: string): string | null {
   try {
-    const output = execSync(`git ls-remote ${gitUrl} refs/heads/${branch} 2>/dev/null`, {
+    const output = execFileSync('git', ['ls-remote', gitUrl, `refs/heads/${branch}`], {
       encoding: 'utf8',
       timeout: 15000
     });
@@ -431,7 +431,7 @@ function getRemoteHeadCommit(gitUrl: string, branch: string): string | null {
 
 function getRemoteTagCommit(gitUrl: string, tag: string): string | null {
   try {
-    const output = execSync(`git ls-remote ${gitUrl} refs/tags/${tag} 2>/dev/null`, {
+    const output = execFileSync('git', ['ls-remote', gitUrl, `refs/tags/${tag}`], {
       encoding: 'utf8',
       timeout: 15000
     });
