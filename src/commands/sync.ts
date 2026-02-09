@@ -11,7 +11,9 @@ import { multiAgentSync } from '../services/multi-agent-sync';
 import { configManager } from '../services/config-manager';
 
 /**
- * Command options for sync
+ * Command options for sync command
+ *
+ * @interface
  */
 interface SyncOptions {
   /** Sync specific craft by name */
@@ -22,6 +24,11 @@ interface SyncOptions {
   dryRun?: boolean;
 }
 
+/**
+ * Creates the 'sync' command for syncing crafts across AI agents
+ *
+ * @returns Commander command instance configured for multi-agent sync
+ */
 export function createSyncCommand(): Command {
   return new Command('sync')
   .description('Sync crafts across all configured AI agents')

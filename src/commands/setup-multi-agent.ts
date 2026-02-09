@@ -17,7 +17,9 @@ import { multiAgentSync } from '../services/multi-agent-sync';
 import { configManager } from '../services/config-manager';
 
 /**
- * Command options for setup-multi-agent
+ * Command options for setup-multi-agent command
+ *
+ * @interface
  */
 interface SetupOptions {
   /** Auto-sync on install/update */
@@ -29,6 +31,9 @@ interface SetupOptions {
 /**
  * Prompt user for yes/no input
  * (Simplified for now - in production would use inquirer or prompts)
+ *
+ * @param _question - The question to ask the user
+ * @returns User's yes/no response
  */
 function promptYesNo(_question: string): boolean {
   // TODO: Implement actual prompting with inquirer
@@ -39,6 +44,10 @@ function promptYesNo(_question: string): boolean {
 /**
  * Prompt user to select from multiple options
  * (Simplified for now - in production would use inquirer or prompts)
+ *
+ * @param _question - The question to ask the user
+ * @param _choices - Available choices to select from
+ * @returns Selected choices
  */
 function promptMultiSelect(_question: string, _choices: string[]): string[] {
   // TODO: Implement actual prompting with inquirer
@@ -46,6 +55,11 @@ function promptMultiSelect(_question: string, _choices: string[]): string[] {
   return _choices;
 }
 
+/**
+ * Creates the 'setup-multi-agent' command for interactive multi-agent configuration
+ *
+ * @returns Commander command instance configured for multi-agent setup
+ */
 export function createSetupMultiAgentCommand(): Command {
   return new Command('setup-multi-agent')
   .description('Interactive setup for multi-agent sync')

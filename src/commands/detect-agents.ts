@@ -10,7 +10,9 @@ import { logger } from '../utils/logger';
 import { agentDetector } from '../services/agent-detector';
 
 /**
- * Command options for detect-agents
+ * Command options for detect-agents command
+ *
+ * @interface
  */
 interface DetectAgentsOptions {
   /** Show additional debug information */
@@ -19,6 +21,11 @@ interface DetectAgentsOptions {
   format?: 'text' | 'json';
 }
 
+/**
+ * Creates the 'detect-agents' command for detecting AI coding assistants
+ *
+ * @returns Commander command instance configured for agent detection
+ */
 export function createDetectAgentsCommand(): Command {
   return new Command('detect-agents')
   .description('Detect AI coding assistants in the project')

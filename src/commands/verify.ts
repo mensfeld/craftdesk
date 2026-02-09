@@ -11,7 +11,9 @@ import { multiAgentSync } from '../services/multi-agent-sync';
 import { configManager } from '../services/config-manager';
 
 /**
- * Command options for verify
+ * Command options for verify command
+ *
+ * @interface
  */
 interface VerifyOptions {
   /** Verify specific craft by name */
@@ -22,6 +24,11 @@ interface VerifyOptions {
   format?: 'text' | 'json';
 }
 
+/**
+ * Creates the 'verify' command for verifying sync status
+ *
+ * @returns Commander command instance configured for sync verification
+ */
 export function createVerifyCommand(): Command {
   return new Command('verify')
   .description('Verify sync status of crafts across AI agents')
