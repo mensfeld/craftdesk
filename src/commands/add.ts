@@ -227,12 +227,14 @@ async function addCommand(craftArg: string, options: AddCommandOptions): Promise
     }
 
     // Initialize field if it doesn't exist
+    // Initialize dependencies field if it doesn't exist
     if (!craftDeskJson[depField]) {
       craftDeskJson[depField] = {};
     }
 
-    // Add to craftdesk.json
-    craftDeskJson[depField]![craftName] = depValue;
+    // Add to craftdesk.json (depField is guaranteed to exist after initialization)
+    const deps = craftDeskJson[depField] as Record<string, string | DependencyConfig>;
+    deps[craftName] = depValue;
 
     // Save craftdesk.json
     await writeCraftDeskJson(craftDeskJson);

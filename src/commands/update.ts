@@ -337,13 +337,17 @@ async function fetchNewLockEntry(update: UpdateInfo, _latest?: boolean): Promise
     // Git source - update tag/commit
     const newEntry: LockEntry = { ...update.lockEntry };
 
+    if (!update.lockEntry.git) {
+      throw new Error('Git URL is required for git-based update');
+    }
+
     if (update.lockEntry.tag) {
       // Update to new tag
       newEntry.tag = update.latest;
       newEntry.version = update.latest.replace(/^v/, '');
 
       // Get commit hash for new tag
-      const commit = getRemoteTagCommit(update.lockEntry.git!, update.latest);
+      const commit = getRemoteTagCommit(update.lockEntry.git, update.latest);
       if (commit) {
         newEntry.commit = commit;
         newEntry.integrity = commit;
@@ -351,7 +355,7 @@ async function fetchNewLockEntry(update: UpdateInfo, _latest?: boolean): Promise
     } else {
       // Update to new commit
       const branch = update.lockEntry.branch || 'main';
-      const latestCommit = getRemoteHeadCommit(update.lockEntry.git!, branch);
+      const latestCommit = getRemoteHeadCommit(update.lockEntry.git, branch);
       if (latestCommit) {
         newEntry.commit = latestCommit;
         newEntry.integrity = latestCommit;

@@ -181,8 +181,9 @@ export class GitResolver {
 
         if (await fs.pathExists(craftPath)) {
           const content = await fs.readFile(craftPath, 'utf-8');
-          gitInfo.craftDeskJson = JSON.parse(content);
-          logger.debug(`Found craftdesk.json in git repository: ${gitInfo.craftDeskJson!.name}@${gitInfo.craftDeskJson!.version}`);
+          const craftJson = JSON.parse(content) as CraftDeskJson;
+          gitInfo.craftDeskJson = craftJson;
+          logger.debug(`Found craftdesk.json in git repository: ${craftJson.name}@${craftJson.version}`);
         } else {
           // No craftdesk.json found - create a minimal one
           logger.warn(`No craftdesk.json found in ${gitInfo.url}${gitInfo.path ? `#path:${gitInfo.path}` : ''}`);
@@ -310,7 +311,9 @@ export class GitResolver {
 
     // Process queue until all dependencies are resolved
     while (toResolve.length > 0) {
-      const [name, dep] = toResolve.shift()!;
+      const item = toResolve.shift();
+      if (!item) break; // Should never happen due to length check, but satisfies TypeScript
+      const [name, dep] = item;
 
       // Skip if already resolved (handles duplicates and circular deps)
       if (visited.has(name)) continue;

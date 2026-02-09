@@ -225,6 +225,10 @@ export class Installer {
   private async installFromGit(craftDir: string, entry: LockEntry): Promise<void> {
     const tempDir = path.join(craftDir, '.tmp-git');
 
+    if (!entry.git) {
+      throw new Error('Git URL is required for git-based installation');
+    }
+
     try {
       // Clone the repository
 
@@ -237,7 +241,7 @@ export class Installer {
         cloneArgs.push('-b', entry.tag);
       }
 
-      cloneArgs.push(entry.git!, tempDir);
+      cloneArgs.push(entry.git, tempDir);
 
       logger.debug(`Cloning git repository: git ${cloneArgs.join(' ')}`);
       execFileSync('git', cloneArgs, { stdio: 'pipe' });
