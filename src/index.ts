@@ -15,6 +15,10 @@ import { createLoginCommand } from './commands/login';
 import { createLogoutCommand } from './commands/logout';
 import { createWhoamiCommand } from './commands/whoami';
 import { createConvertCommand } from './commands/convert';
+import { createDetectAgentsCommand } from './commands/detect-agents';
+import { createSyncCommand } from './commands/sync';
+import { createVerifyCommand } from './commands/verify';
+import { createSetupMultiAgentCommand } from './commands/setup-multi-agent';
 import { logger } from './utils/logger';
 
 const program = new Command();
@@ -42,6 +46,10 @@ program.addCommand(createLoginCommand());
 program.addCommand(createLogoutCommand());
 program.addCommand(createWhoamiCommand());
 program.addCommand(createConvertCommand());
+program.addCommand(createDetectAgentsCommand());
+program.addCommand(createSyncCommand());
+program.addCommand(createVerifyCommand());
+program.addCommand(createSetupMultiAgentCommand());
 
 // Add aliases
 program.command('i', { hidden: true }).action(() => {
@@ -73,6 +81,12 @@ if (process.argv.length === 2) {
   logger.log('');
   logger.log('Format Conversion:');
   logger.log('  craftdesk convert      Convert crafts to other AI editor formats');
+  logger.log('');
+  logger.log('Multi-Agent Sync:');
+  logger.log('  craftdesk setup-multi-agent  Configure multi-agent sync');
+  logger.log('  craftdesk detect-agents      Detect AI coding assistants');
+  logger.log('  craftdesk sync               Sync crafts across agents');
+  logger.log('  craftdesk verify             Verify sync status');
   logger.log('');
   logger.log('Authentication:');
   logger.log('  craftdesk login        Authenticate with a registry');
