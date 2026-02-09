@@ -7,6 +7,7 @@ import { logger } from '../utils/logger';
 import { configManager } from './config-manager';
 import { settingsManager } from './settings-manager';
 import { multiAgentSync } from './multi-agent-sync';
+import { gitIgnoreManager } from './gitignore-manager';
 import { CraftDeskLock, LockEntry } from '../types/craftdesk-lock';
 import { ensureDir } from '../utils/file-system';
 import { verifyFileChecksum, formatChecksum } from '../utils/crypto';
@@ -84,6 +85,15 @@ export class Installer {
     }
 
     logger.succeedSpinner(`Installed ${installed} crafts`);
+
+    // Update .gitignore to ignore managed skills but allow embedded ones
+    try {
+      await gitIgnoreManager.autoUpdate();
+      logger.debug('Updated .claude/skills/.gitignore');
+    } catch {
+      // Don't fail installation if .gitignore update fails
+      logger.warn('Failed to update .gitignore');
+    }
   }
 
   /**
@@ -215,6 +225,10 @@ export class Installer {
   private async installFromGit(craftDir: string, entry: LockEntry): Promise<void> {
     const tempDir = path.join(craftDir, '.tmp-git');
 
+    if (!entry.git) {
+      throw new Error('Git URL is required for git-based installation');
+    }
+
     try {
       // Clone the repository
 
@@ -227,7 +241,7 @@ export class Installer {
         cloneArgs.push('-b', entry.tag);
       }
 
-      cloneArgs.push(entry.git!, tempDir);
+      cloneArgs.push(entry.git, tempDir);
 
       logger.debug(`Cloning git repository: git ${cloneArgs.join(' ')}`);
       execFileSync('git', cloneArgs, { stdio: 'pipe' });

@@ -270,8 +270,9 @@ export class ConfigManager {
     const configPath = this.getGlobalConfigPath();
     try {
       const content = await fs.readFile(configPath, 'utf-8');
-      this.globalConfig = JSON.parse(content);
-      return this.globalConfig!;
+      const config = JSON.parse(content) as GlobalConfig;
+      this.globalConfig = config;
+      return config;
     } catch {
       // Return empty config if file doesn't exist
       return { registries: {} };

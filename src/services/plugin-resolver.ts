@@ -67,8 +67,9 @@ export class PluginResolver {
     try {
       // If already resolved, just add requiredBy
       if (this.resolvedPlugins.has(pluginName)) {
-        const existing = this.resolvedPlugins.get(pluginName)!;
-        if (parentName && !existing.requiredBy.includes(parentName)) {
+        const existing = this.resolvedPlugins.get(pluginName);
+        // existing is guaranteed to exist due to has() check above
+        if (existing && parentName && !existing.requiredBy.includes(parentName)) {
           existing.requiredBy.push(parentName);
         }
         return Object.fromEntries(this.resolvedPlugins);

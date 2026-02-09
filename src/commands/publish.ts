@@ -97,8 +97,14 @@ async function publishCommand(craftPath: string, options: PublishOptions): Promi
     // 8. Upload version
     logger.startSpinner('Publishing...');
 
+    // Author is validated earlier, but TypeScript needs explicit check
+    if (!craftJson.author) {
+      logger.error('Author is required for publishing');
+      process.exit(1);
+    }
+
     const result = await registryClient.createVersion(
-      craftJson.author!,
+      craftJson.author,
       craftJson.name,
       {
         version: craftJson.version,
@@ -112,7 +118,7 @@ async function publishCommand(craftPath: string, options: PublishOptions): Promi
     // 9. Set visibility if public
     if (options.access === 'public') {
       await registryClient.publishCraft(
-        craftJson.author!,
+        craftJson.author,
         craftJson.name,
         { visibility: 'public' }
       );

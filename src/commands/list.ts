@@ -103,8 +103,11 @@ async function listCommand(options: ListCommandOptions): Promise<void> {
       // Show skills
       if (skills.length > 0) {
         logger.log('\n📚 Skills:');
+        const embeddedSkills = craftDeskJson.embedded || [];
         for (const skill of skills) {
-          logger.log(`  ${skill.name}@${skill.version}`);
+          const isEmbedded = embeddedSkills.includes(skill.name);
+          const badge = isEmbedded ? ' 📌 (embedded)' : '';
+          logger.log(`  ${skill.name}@${skill.version}${badge}`);
         }
       }
 
