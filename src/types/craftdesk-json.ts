@@ -56,6 +56,18 @@ export interface CraftDeskJson {
   /** Hook definitions mapping events to command arrays */
   hooks?: Record<string, string[]>;
 
+  /** Multi-agent sync configuration */
+  multiAgent?: {
+    /** Enable multi-agent sync */
+    enabled: boolean;
+    /** Canonical location for source of truth */
+    canonical: string;
+    /** Target directories to sync to */
+    targets: string[];
+    /** Auto-sync on install/update */
+    autoSync?: boolean;
+  };
+
   /** Index signature to allow dynamic property access for future extensibility */
   [key: string]: unknown;
 }
