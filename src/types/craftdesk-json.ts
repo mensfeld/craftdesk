@@ -68,6 +68,9 @@ export interface CraftDeskJson {
     autoSync?: boolean;
   };
 
+  /** Embedded (local) skills that are committed to git (not managed by craftdesk install) */
+  embedded?: string[];
+
   /** Index signature to allow dynamic property access for future extensibility */
   [key: string]: unknown;
 }

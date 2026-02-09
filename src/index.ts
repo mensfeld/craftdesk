@@ -19,6 +19,8 @@ import { createDetectAgentsCommand } from './commands/detect-agents';
 import { createSyncCommand } from './commands/sync';
 import { createVerifyCommand } from './commands/verify';
 import { createSetupMultiAgentCommand } from './commands/setup-multi-agent';
+import { createEmbedCommand } from './commands/embed';
+import { createUnembedCommand } from './commands/unembed';
 import { logger } from './utils/logger';
 
 const program = new Command();
@@ -50,6 +52,8 @@ program.addCommand(createDetectAgentsCommand());
 program.addCommand(createSyncCommand());
 program.addCommand(createVerifyCommand());
 program.addCommand(createSetupMultiAgentCommand());
+program.addCommand(createEmbedCommand());
+program.addCommand(createUnembedCommand());
 
 // Add aliases
 program.command('i', { hidden: true }).action(() => {
@@ -87,6 +91,10 @@ if (process.argv.length === 2) {
   logger.log('  craftdesk detect-agents      Detect AI coding assistants');
   logger.log('  craftdesk sync               Sync crafts across agents');
   logger.log('  craftdesk verify             Verify sync status');
+  logger.log('');
+  logger.log('Embedded Skills:');
+  logger.log('  craftdesk embed <name>       Register a local/embedded skill');
+  logger.log('  craftdesk unembed <name>     Unregister an embedded skill');
   logger.log('');
   logger.log('Authentication:');
   logger.log('  craftdesk login        Authenticate with a registry');
