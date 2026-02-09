@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import axios from 'axios';
 import AdmZip from 'adm-zip';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { configManager } from './config-manager';
 import { settingsManager } from './settings-manager';
@@ -178,28 +178,28 @@ export class Installer {
     try {
       // Clone the repository
 
-      // Build clone command with appropriate ref
-      let cloneCmd = `git clone --depth 1`;
+      // Build clone command args — use array form to prevent shell injection
+      const cloneArgs = ['clone', '--depth', '1'];
 
       if (entry.branch) {
-        cloneCmd += ` -b ${entry.branch}`;
+        cloneArgs.push('-b', entry.branch);
       } else if (entry.tag) {
-        cloneCmd += ` -b ${entry.tag}`;
+        cloneArgs.push('-b', entry.tag);
       }
 
-      cloneCmd += ` ${entry.git} ${tempDir}`;
+      cloneArgs.push(entry.git!, tempDir);
 
-      logger.debug(`Cloning git repository: ${cloneCmd}`);
-      execSync(cloneCmd, { stdio: 'pipe' });
+      logger.debug(`Cloning git repository: git ${cloneArgs.join(' ')}`);
+      execFileSync('git', cloneArgs, { stdio: 'pipe' });
 
       // If specific commit, checkout that commit
       if (entry.commit) {
         // Check if repo is shallow before trying to unshallow
         const isShallow = await fs.pathExists(path.join(tempDir, '.git', 'shallow'));
         if (isShallow) {
-          execSync(`cd ${tempDir} && git fetch --unshallow`, { stdio: 'pipe' });
+          execFileSync('git', ['fetch', '--unshallow'], { cwd: tempDir, stdio: 'pipe' });
         }
-        execSync(`cd ${tempDir} && git checkout ${entry.commit}`, { stdio: 'pipe' });
+        execFileSync('git', ['checkout', entry.commit], { cwd: tempDir, stdio: 'pipe' });
       }
 
       // Handle direct file reference

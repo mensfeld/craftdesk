@@ -3,11 +3,11 @@ import { GitResolver } from '../../src/services/git-resolver';
 import { createTempDir, cleanupTempDir, writeJsonFile } from '../helpers/test-utils';
 import path from 'path';
 import fs from 'fs-extra';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
-// Mock execSync for these tests
+// Mock execFileSync for these tests
 vi.mock('child_process', () => ({
-  execSync: vi.fn()
+  execFileSync: vi.fn()
 }));
 
 describe('GitResolver', () => {
@@ -158,17 +158,16 @@ describe('GitResolver', () => {
       await writeJsonFile(path.join(mockRepoPath, 'craftdesk.json'), craftDeskJson);
 
       // Mock git commands
-      const mockExecSync = vi.mocked(execSync);
-      mockExecSync.mockImplementation((cmd: any, options?: any) => {
-        const cmdStr = cmd.toString();
-        if (cmdStr.includes('git clone')) {
+      const mockExecFileSync = vi.mocked(execFileSync);
+      mockExecFileSync.mockImplementation((_cmd: any, args?: any, options?: any) => {
+        const argsArr = args as string[];
+        if (argsArr[0] === 'clone') {
           // Simulate successful clone by copying our mock repo
-          const targetMatch = cmdStr.match(/git clone.*\s+(.+)$/);
-          if (targetMatch) {
-            fs.copySync(mockRepoPath, targetMatch[1]);
-          }
+          // Last arg is the target directory
+          const targetDir = argsArr[argsArr.length - 1];
+          fs.copySync(mockRepoPath, targetDir);
           return Buffer.from('');
-        } else if (cmdStr.includes('git rev-parse HEAD')) {
+        } else if (argsArr[0] === 'rev-parse' && argsArr[1] === 'HEAD') {
           const output = 'abc123def456789012345678901234567890abcd\n';
           return options?.encoding === 'utf8' ? output : Buffer.from(output);
         }
@@ -189,16 +188,14 @@ describe('GitResolver', () => {
       await fs.ensureDir(mockRepoPath);
       await fs.writeFile(path.join(mockRepoPath, 'SKILL.md'), '# Skill');
 
-      const mockExecSync = vi.mocked(execSync);
-      mockExecSync.mockImplementation((cmd: any, options?: any) => {
-        const cmdStr = cmd.toString();
-        if (cmdStr.includes('git clone')) {
-          const targetMatch = cmdStr.match(/git clone.*\s+(.+)$/);
-          if (targetMatch) {
-            fs.copySync(mockRepoPath, targetMatch[1]);
-          }
+      const mockExecFileSync = vi.mocked(execFileSync);
+      mockExecFileSync.mockImplementation((_cmd: any, args?: any, options?: any) => {
+        const argsArr = args as string[];
+        if (argsArr[0] === 'clone') {
+          const targetDir = argsArr[argsArr.length - 1];
+          fs.copySync(mockRepoPath, targetDir);
           return Buffer.from('');
-        } else if (cmdStr.includes('git rev-parse HEAD')) {
+        } else if (argsArr[0] === 'rev-parse' && argsArr[1] === 'HEAD') {
           const output = 'abc123def456789012345678901234567890abcd\n';
           return options?.encoding === 'utf8' ? output : Buffer.from(output);
         }
@@ -231,16 +228,14 @@ describe('GitResolver', () => {
 
       await writeJsonFile(path.join(skillPath, 'craftdesk.json'), craftDeskJson);
 
-      const mockExecSync = vi.mocked(execSync);
-      mockExecSync.mockImplementation((cmd: any, options?: any) => {
-        const cmdStr = cmd.toString();
-        if (cmdStr.includes('git clone')) {
-          const targetMatch = cmdStr.match(/git clone.*\s+(.+)$/);
-          if (targetMatch) {
-            fs.copySync(mockRepoPath, targetMatch[1]);
-          }
+      const mockExecFileSync = vi.mocked(execFileSync);
+      mockExecFileSync.mockImplementation((_cmd: any, args?: any, options?: any) => {
+        const argsArr = args as string[];
+        if (argsArr[0] === 'clone') {
+          const targetDir = argsArr[argsArr.length - 1];
+          fs.copySync(mockRepoPath, targetDir);
           return Buffer.from('');
-        } else if (cmdStr.includes('git rev-parse HEAD')) {
+        } else if (argsArr[0] === 'rev-parse' && argsArr[1] === 'HEAD') {
           const output = 'def456789012345678901234567890abcdef123\n';
           return options?.encoding === 'utf8' ? output : Buffer.from(output);
         }
@@ -297,16 +292,14 @@ describe('GitResolver', () => {
 
       await writeJsonFile(path.join(mockRepoPath, 'craftdesk.json'), craftDeskJson);
 
-      const mockExecSync = vi.mocked(execSync);
-      mockExecSync.mockImplementation((cmd: any, options?: any) => {
-        const cmdStr = cmd.toString();
-        if (cmdStr.includes('git clone')) {
-          const targetMatch = cmdStr.match(/git clone.*\s+(.+)$/);
-          if (targetMatch) {
-            fs.copySync(mockRepoPath, targetMatch[1]);
-          }
+      const mockExecFileSync = vi.mocked(execFileSync);
+      mockExecFileSync.mockImplementation((_cmd: any, args?: any, options?: any) => {
+        const argsArr = args as string[];
+        if (argsArr[0] === 'clone') {
+          const targetDir = argsArr[argsArr.length - 1];
+          fs.copySync(mockRepoPath, targetDir);
           return Buffer.from('');
-        } else if (cmdStr.includes('git rev-parse HEAD')) {
+        } else if (argsArr[0] === 'rev-parse' && argsArr[1] === 'HEAD') {
           const output = 'abc123def456789012345678901234567890abcd\n';
           return options?.encoding === 'utf8' ? output : Buffer.from(output);
         }
