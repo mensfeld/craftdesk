@@ -6,6 +6,7 @@ import { execFileSync } from 'child_process';
 import { logger } from '../utils/logger';
 import { configManager } from './config-manager';
 import { settingsManager } from './settings-manager';
+import { multiAgentSync } from './multi-agent-sync';
 import { CraftDeskLock, LockEntry } from '../types/craftdesk-lock';
 import { ensureDir } from '../utils/file-system';
 import { verifyFileChecksum, formatChecksum } from '../utils/crypto';
@@ -169,6 +170,45 @@ export class Installer {
     // Register plugin in settings if this is a plugin type
     if (entry.type === 'plugin') {
       await this.registerPlugin(name, entry, craftDir);
+    }
+
+    // Sync to other agents if multi-agent sync is enabled and auto-sync is on
+    await this.syncCraftIfEnabled(name, craftDir, entry.type);
+  }
+
+  /**
+   * Sync craft to other agent directories if multi-agent auto-sync is enabled
+   *
+   * @param name - Craft name
+   * @param craftDir - Path to craft directory
+   * @param type - Craft type
+   * @private
+   */
+  private async syncCraftIfEnabled(
+    name: string,
+    craftDir: string,
+    type: string
+  ): Promise<void> {
+    const config = await configManager.getCraftDeskJson();
+
+    // Only sync skills for now (other types could be added later)
+    if (type !== 'skill') {
+      return;
+    }
+
+    // Check if multi-agent sync is enabled and auto-sync is on
+    if (!config?.multiAgent?.enabled || !config?.multiAgent?.autoSync) {
+      return;
+    }
+
+    logger.debug(`Auto-syncing ${name} to other agents...`);
+
+    try {
+      await multiAgentSync.syncCraft(name, craftDir);
+    } catch (error) {
+      // Don't fail installation if sync fails, just log a warning
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Failed to auto-sync ${name}: ${message}`);
     }
   }
 
