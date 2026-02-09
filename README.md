@@ -17,6 +17,7 @@ CraftDesk is a package manager for AI capabilities used in Claude Code and other
 - **Install AI skills, agents, commands, hooks, plugins, and collections** from git repositories or registries
 - **Collections** - Curate and share groups of related crafts that work together
 - **Plugin system** - Bundle multiple crafts with automatic dependency resolution
+- **Multi-agent sync** - Share skills across multiple AI assistants (Claude, Cursor, Windsurf, etc.)
 - **Lock versions** for reproducible environments across teams
 - **Manage dependencies** with automatic recursive installation
 - **Support monorepos** with subdirectory extraction
@@ -298,6 +299,154 @@ jobs:
 2. **Preserve originals** - Keep SKILL.md as source of truth
 3. **Update together** - Convert after each craft update
 4. **Version control** - Commit both source and converted formats
+
+### Multi-Agent Sync
+
+**Share skills across multiple AI coding assistants** - Sync your crafts to Claude Code, Cursor, Windsurf, Continue.dev, and more with automatic copy management and drift detection.
+
+**Why use multi-agent sync?**
+- **Single source of truth** - Maintain skills in one location (`.claude/skills/`)
+- **Cross-editor compatibility** - Use the same skills in Claude, Cursor, Windsurf, etc.
+- **Team flexibility** - Developers can use their preferred AI assistant
+- **Automatic sync** - Install once, sync everywhere
+- **Drift detection** - SHA-256 checksums detect modifications
+- **Windows compatible** - Copy-based (no symlinks required)
+
+**Quick Start:**
+
+```bash
+# 1. Interactive setup (recommended)
+craftdesk setup-multi-agent
+
+# 2. Detect available AI assistants
+craftdesk detect-agents
+
+# 3. Sync all crafts to configured agents
+craftdesk sync
+
+# 4. Verify sync status (check for drift)
+craftdesk verify
+```
+
+**Configuration:**
+
+Add to your `craftdesk.json`:
+
+```json
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "dependencies": {
+    "ruby-expert": "^1.0.0"
+  },
+  "multiAgent": {
+    "enabled": true,
+    "canonical": ".claude",
+    "targets": [
+      ".claude/skills",
+      ".cursor/skills",
+      ".windsurf/skills"
+    ],
+    "autoSync": true
+  }
+}
+```
+
+**How it works:**
+
+1. **Canonical Location** - Skills are installed to `.claude/skills/` (source of truth)
+2. **Target Directories** - Copies are created in `.cursor/skills/`, `.windsurf/skills/`, etc.
+3. **Checksum Tracking** - Each copy has a `.craftdesk-checksum` file (SHA-256)
+4. **Drift Detection** - `craftdesk verify` compares checksums to detect modifications
+5. **Re-sync** - `craftdesk sync` updates all copies from canonical
+
+**Example Workflow:**
+
+```bash
+# Install a new skill
+craftdesk add git+https://github.com/user/ruby-expert.git
+
+# Skills auto-sync to all agents (if autoSync: true)
+# ✓ Installed to .claude/skills/ruby-expert
+# ✓ Synced to .cursor/skills/ruby-expert
+# ✓ Synced to .windsurf/skills/ruby-expert
+
+# Verify everything is in sync
+craftdesk verify
+# ✅ All 3 craft(s) are in sync!
+
+# Later, check for drift
+craftdesk verify
+# ⚠️  ruby-expert
+#   Out of sync: .cursor/skills/ruby-expert (modified)
+
+# Re-sync to fix drift
+craftdesk sync --craft ruby-expert
+# ✅ Synced ruby-expert to 3 location(s)
+```
+
+**Supported AI Assistants:**
+
+| Assistant | Directory | Auto-Detected |
+|-----------|-----------|---------------|
+| **Claude Code** | `.claude/skills/` | ✅ Always enabled (canonical) |
+| **Cursor** | `.cursor/skills/` | ✅ Yes |
+| **Windsurf** | `.windsurf/skills/` | ✅ Yes |
+| **Continue.dev** | `.continue/skills/` | ✅ Yes |
+| **Generic .agents** | `.agents/skills/` | ✅ Yes |
+
+**Commands:**
+
+```bash
+# Setup wizard (interactive)
+craftdesk setup-multi-agent
+
+# Detect AI assistants in project
+craftdesk detect-agents
+craftdesk detect-agents --verbose
+craftdesk detect-agents --format json
+
+# Sync all crafts to all targets
+craftdesk sync
+craftdesk sync --craft ruby-expert       # Sync specific craft
+craftdesk sync --dry-run                 # Preview changes
+craftdesk sync --force                   # Force re-sync
+
+# Verify sync status
+craftdesk verify
+craftdesk verify --craft ruby-expert     # Verify specific craft
+craftdesk verify --verbose               # Show checksums
+craftdesk verify --format json           # JSON output
+```
+
+**Best Practices:**
+
+1. **Use canonical as source of truth** - Always edit skills in `.claude/skills/`
+2. **Enable autoSync** - New installs automatically sync to all agents
+3. **Run verify regularly** - Check for drift, especially in teams
+4. **Sync after manual edits** - If you edit a skill, run `craftdesk sync`
+5. **Commit canonical only** - Add target directories to `.gitignore`
+
+**gitignore Example:**
+
+```gitignore
+# Only track canonical location
+.cursor/skills/*
+.windsurf/skills/*
+.continue/skills/*
+
+# Track canonical
+!.claude/skills/
+```
+
+**Why copy instead of symlinks?**
+
+We use copy-based sync instead of symlinks for maximum compatibility:
+- ✅ **Windows compatible** - No admin privileges or Developer Mode required
+- ✅ **Git-friendly** - No `core.symlinks` complications
+- ✅ **Reliable** - Works consistently across all platforms
+- ✅ **Simple** - Easy to understand and debug
+- ✅ **Verifiable** - Checksums detect any modifications
 
 ### Collections
 
@@ -927,6 +1076,185 @@ craftdesk publish --visibility organization
 2. Collects all craft files
 3. Creates a new version on the registry
 4. Publishes with specified visibility
+
+---
+
+### `craftdesk setup-multi-agent [options]`
+
+Interactive wizard to configure multi-agent sync.
+
+**Options:**
+- `--auto-sync` - Enable automatic sync on install/update
+- `--skip-sync` - Skip initial sync after setup
+
+**Examples:**
+```bash
+# Interactive setup (recommended)
+craftdesk setup-multi-agent
+
+# Setup with auto-sync enabled
+craftdesk setup-multi-agent --auto-sync
+
+# Setup without initial sync
+craftdesk setup-multi-agent --skip-sync
+```
+
+**What it does:**
+1. Detects AI coding assistants in your project
+2. Lets you choose which agents to sync to
+3. Updates `craftdesk.json` with multiAgent configuration
+4. Optionally performs initial sync of existing crafts
+
+---
+
+### `craftdesk detect-agents [options]`
+
+Detect AI coding assistants installed in the project.
+
+**Options:**
+- `-v, --verbose` - Show detailed detection information
+- `-f, --format <format>` - Output format: text or json (default: text)
+
+**Examples:**
+```bash
+# Detect agents
+craftdesk detect-agents
+
+# Verbose output
+craftdesk detect-agents --verbose
+
+# JSON output for scripting
+craftdesk detect-agents --format json
+```
+
+**Example output:**
+```
+🔍 AI Coding Assistant Detection
+
+Detected Agents:
+  ✓ Claude Code
+    Directory: .claude/skills
+    Status: ✅ Enabled
+
+  ○ Cursor
+    Directory: .cursor/skills
+    Status: ⚪ Available
+
+Summary:
+  Detected: 2 agent(s)
+  Enabled: 1 agent(s)
+
+💡 Tip:
+  You have multiple agents but sync is only enabled for one.
+  Run `craftdesk setup-multi-agent` to sync across all agents.
+```
+
+---
+
+### `craftdesk sync [options]`
+
+Sync crafts to all configured AI agents.
+
+**Options:**
+- `-c, --craft <name>` - Sync specific craft by name
+- `-f, --force` - Force sync even if checksums match
+- `--dry-run` - Show what would be synced without making changes
+
+**Examples:**
+```bash
+# Sync all crafts
+craftdesk sync
+
+# Sync specific craft
+craftdesk sync --craft ruby-expert
+
+# Dry run (preview changes)
+craftdesk sync --dry-run
+
+# Force sync
+craftdesk sync --force
+```
+
+**What it does:**
+1. Reads multiAgent configuration from craftdesk.json
+2. Copies crafts from canonical location to all targets
+3. Calculates and stores SHA-256 checksums
+4. Reports sync status for each location
+
+**Example output:**
+```
+✅ Synced 5 craft(s)
+
+✓ ruby-expert: 3 location(s)
+✓ python-expert: 3 location(s)
+✓ postgres-expert: 3 location(s)
+✓ docker-expert: 3 location(s)
+✓ git-expert: 3 location(s)
+
+Summary:
+  Total synced: 15 location(s)
+```
+
+---
+
+### `craftdesk verify [options]`
+
+Verify sync status of crafts across AI agents using checksum validation.
+
+**Options:**
+- `-c, --craft <name>` - Verify specific craft by name
+- `-v, --verbose` - Show detailed checksum information
+- `-f, --format <format>` - Output format: text or json (default: text)
+
+**Examples:**
+```bash
+# Verify all crafts
+craftdesk verify
+
+# Verify specific craft
+craftdesk verify --craft ruby-expert
+
+# Verbose output with checksums
+craftdesk verify --verbose
+
+# JSON output
+craftdesk verify --format json
+```
+
+**What it does:**
+1. Reads multiAgent configuration
+2. Calculates SHA-256 checksums for all copies
+3. Compares checksums to detect drift
+4. Reports which copies are in sync vs. out of sync
+
+**Example output (in sync):**
+```
+🔍 Sync Status: All Crafts
+
+Summary:
+  Total crafts: 5
+  In sync: 5
+  Out of sync: 0
+
+✅ All 5 craft(s) are in sync!
+```
+
+**Example output (drift detected):**
+```
+🔍 Sync Status: All Crafts
+
+Summary:
+  Total crafts: 5
+  In sync: 4
+  Out of sync: 1
+
+❌ Out of Sync (1):
+
+  ruby-expert
+    ⚠️  .cursor/skills/ruby-expert (modified)
+
+💡 Run `craftdesk sync` to fix all issues
+```
 
 ---
 
