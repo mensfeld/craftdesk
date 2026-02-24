@@ -116,9 +116,9 @@ echo "🚀 GitHub Actions will publish to NPM automatically"
 Usage:
 ```bash
 chmod +x scripts/release.sh
-./scripts/release.sh patch   # 0.5.0 → 0.5.1
-./scripts/release.sh minor   # 0.5.0 → 0.6.0
-./scripts/release.sh major   # 0.5.0 → 1.0.0
+./scripts/release.sh patch   # x.y.z → x.y.(z+1)
+./scripts/release.sh minor   # x.y.z → x.(y+1).0
+./scripts/release.sh major   # x.y.z → (x+1).0.0
 ```
 
 ## What Gets Published

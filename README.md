@@ -46,7 +46,7 @@ npm install -g craftdesk
 Verify installation:
 ```bash
 craftdesk --version
-# 0.5.0
+# x.y.z
 ```
 
 **Requirements:** Node.js >= 18.0.0, Git, npm or yarn
@@ -2162,9 +2162,9 @@ CraftDesk uses automated NPM publishing via GitHub Actions with provenance attes
 
 **Quick release:**
 ```bash
-./scripts/release.sh patch   # 0.5.0 → 0.5.1
-./scripts/release.sh minor   # 0.5.0 → 0.6.0
-./scripts/release.sh major   # 0.5.0 → 1.0.0
+./scripts/release.sh patch   # x.y.z → x.y.(z+1)
+./scripts/release.sh minor   # x.y.z → x.(y+1).0
+./scripts/release.sh major   # x.y.z → (x+1).0.0
 ```
 
 The script will:
