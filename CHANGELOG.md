@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.5.0 (2025-02-09)
+## 0.5.1 (Unreleased)
+
+### Fixed
+- **Version reporting**: `craftdesk --version` now reads from package.json instead of hardcoded value [#46](https://github.com/mensfeld/craftdesk/issues/46)
+- **CI**: Added version consistency check to prevent future mismatches
+- **Tests**: Limited vitest parallelism to prevent resource exhaustion
+
+## 0.5.0 (2026-02-09)
 
 ### Added
 - **Multi-Agent Sync**: Sync skills across multiple AI coding assistants
