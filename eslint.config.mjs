@@ -52,6 +52,9 @@ export default [
       // Disable base rule in favor of TypeScript version
       'no-unused-vars': 'off',
 
+      // Disable ESLint 10 rule that requires error cause (too strict for now)
+      'preserve-caught-error': 'off',
+
       // ============================================================
       // JSDoc Rules - Documentation Linting (like YARD for Ruby)
       // ============================================================
