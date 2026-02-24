@@ -191,8 +191,13 @@ export class GitResolver {
           // Try to infer the type from directory structure
           const type = await this.inferCraftType(repoTempDir, gitInfo.path);
 
+          // Use subdirectory name if path is specified, otherwise use repo name
+          const inferredName = gitInfo.path
+            ? path.basename(gitInfo.path)
+            : path.basename(gitInfo.url, '.git');
+
           gitInfo.craftDeskJson = {
-            name: path.basename(gitInfo.url, '.git'),
+            name: inferredName,
             version: gitInfo.tag || gitInfo.branch || resolvedCommit.substring(0, 7),
             type: type,
             description: `Git dependency from ${gitInfo.url}`,
