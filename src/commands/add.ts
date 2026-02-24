@@ -415,10 +415,19 @@ function parseGitUrl(urlString: string): ParsedGitUrl {
 
   result.url = url;
 
-  // Extract repository name from URL for display purposes
-  const match = url.match(/\/([^/]+?)(\.git)?$/);
-  if (match) {
-    result.name = match[1];
+  // Determine the name based on path, file, or repo name (in priority order)
+  if (result.path) {
+    // Use the last segment of the subdirectory path as the name
+    result.name = path.basename(result.path);
+  } else if (result.file) {
+    // Use the filename without extension as the name
+    result.name = path.basename(result.file, path.extname(result.file));
+  } else {
+    // Fall back to extracting repository name from URL
+    const match = url.match(/\/([^/]+?)(\.git)?$/);
+    if (match) {
+      result.name = match[1];
+    }
   }
 
   return result;

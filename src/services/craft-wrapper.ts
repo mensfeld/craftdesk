@@ -12,6 +12,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { logger } from '../utils/logger';
 import { ensureDir } from '../utils/file-system';
+import { getCliVersion } from '../utils/version-utils';
 import type { PluginManifest } from '../types/claude-settings';
 
 /**
@@ -279,7 +280,7 @@ See the original ${craftType} documentation in the \`${this.getTypeDirectory(cra
 - **Plugin Name**: ${pluginName}
 - **Original ${craftType.charAt(0).toUpperCase() + craftType.slice(1)}**: ${craftName}
 - **Wrapped At**: ${new Date().toISOString()}
-- **CraftDesk Version**: 0.3.0
+- **CraftDesk Version**: ${getCliVersion()}
 
 ---
 

@@ -1,7 +1,28 @@
+import * as path from 'path';
+import * as fs from 'fs';
+
 /**
  * Utilities for version comparison and semantic versioning operations
  * Supports parsing, comparing, and sorting semver version strings
  */
+
+/**
+ * Gets the CraftDesk CLI version from package.json
+ *
+ * @returns The version string from package.json
+ */
+export function getCliVersion(): string {
+  try {
+    // In production (dist/), package.json is two levels up
+    // In development (src/), package.json is also two levels up
+    const packagePath = path.resolve(__dirname, '..', '..', 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
+    return packageJson.version || '0.0.0';
+  } catch {
+    // Fallback if package.json cannot be read
+    return '0.0.0';
+  }
+}
 
 /**
  * Parses a semantic version string into its components

@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.5.0 (2025-02-09)
+## 0.5.1 (2026-02-24)
+
+### Fixed
+- **Version reporting**: `craftdesk --version` now reads from package.json instead of hardcoded value [#46](https://github.com/mensfeld/craftdesk/issues/46)
+- **Git subdirectory naming**: Skills from git subdirectories now use the path name instead of repo name [#47](https://github.com/mensfeld/craftdesk/issues/47)
+- **CI**: Added version consistency check to prevent future mismatches
+- **Tests**: Limited vitest parallelism to prevent resource exhaustion
+
+## 0.5.0 (2026-02-09)
 
 ### Added
 - **Multi-Agent Sync**: Sync skills across multiple AI coding assistants
