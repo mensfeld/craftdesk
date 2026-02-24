@@ -83,6 +83,16 @@ jobs:
           test -f dist/index.js || exit 1
           echo "Build successful!"
 
+      - name: Verify version consistency
+        run: |
+          CLI_VERSION=$(node dist/index.js --version)
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$CLI_VERSION" != "$PKG_VERSION" ]; then
+            echo "Version mismatch: CLI reports $CLI_VERSION but package.json has $PKG_VERSION"
+            exit 1
+          fi
+          echo "Version check passed: $CLI_VERSION"
+
   type-check:
     timeout-minutes: 5
     runs-on: ubuntu-latest
