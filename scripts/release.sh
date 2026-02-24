@@ -11,9 +11,9 @@ if [[ ! "$VERSION_TYPE" =~ ^(patch|minor|major)$ ]]; then
   echo "Usage: $0 [patch|minor|major]"
   echo ""
   echo "Examples:"
-  echo "  $0 patch   # 0.3.0 → 0.3.1 (bug fixes)"
-  echo "  $0 minor   # 0.3.0 → 0.4.0 (new features)"
-  echo "  $0 major   # 0.3.0 → 1.0.0 (breaking changes)"
+  echo "  $0 patch   # 0.5.0 → 0.5.1 (bug fixes)"
+  echo "  $0 minor   # 0.5.0 → 0.6.0 (new features)"
+  echo "  $0 major   # 0.5.0 → 1.0.0 (breaking changes)"
   exit 1
 fi
 

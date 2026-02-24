@@ -22,13 +22,14 @@ import { createSetupMultiAgentCommand } from './commands/setup-multi-agent';
 import { createEmbedCommand } from './commands/embed';
 import { createUnembedCommand } from './commands/unembed';
 import { logger } from './utils/logger';
+import { getCliVersion } from './utils/version-utils';
 
 const program = new Command();
 
 program
   .name('craftdesk')
   .description('CLI for managing CraftDesk AI capabilities')
-  .version('0.3.0', '-v, --version')
+  .version(getCliVersion(), '-v, --version')
   .option('-d, --debug', 'Enable debug output', () => {
     process.env.DEBUG = 'true';
   });
