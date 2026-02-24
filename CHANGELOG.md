@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.5.1 (Unreleased)
+## 0.5.1 (2026-02-24)
 
 ### Fixed
 - **Version reporting**: `craftdesk --version` now reads from package.json instead of hardcoded value [#46](https://github.com/mensfeld/craftdesk/issues/46)
