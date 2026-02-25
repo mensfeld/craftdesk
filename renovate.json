@@ -25,12 +25,6 @@
       "commitMessageTopic": "dev dependencies"
     },
     {
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "dependencyDashboardApproval": true
-    },
-    {
       "description": "Group ruby/setup-ruby action with ruby version updates",
       "matchPackageNames": [
         "ruby/setup-ruby",
