@@ -12,6 +12,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { logger } from '../utils/logger';
 import { configManager } from './config-manager';
+import { gitIgnoreManager } from './gitignore-manager';
 import { ensureDir } from '../utils/file-system';
 import type { SyncStatus, SyncResult, SyncLocation } from '../types/multi-agent';
 
@@ -39,6 +40,33 @@ export class MultiAgentSync {
    * ```
    */
   async syncCraft(
+    craftName: string,
+    sourceDir: string,
+    cwd: string = process.cwd()
+  ): Promise<SyncResult> {
+    const result = await this.syncCraftCore(craftName, sourceDir, cwd);
+
+    // Update .gitignore in target directories
+    try {
+      await gitIgnoreManager.autoUpdateTargets(cwd);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Failed to update .gitignore in target directories: ${message}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Core sync logic without gitignore update (used by syncAllCrafts to batch)
+   *
+   * @param craftName - Name of the craft to sync
+   * @param sourceDir - Source directory containing the craft files
+   * @param cwd - Current working directory (defaults to process.cwd())
+   * @returns Sync result with success/failure details
+   * @private
+   */
+  private async syncCraftCore(
     craftName: string,
     sourceDir: string,
     cwd: string = process.cwd()
@@ -95,8 +123,8 @@ export class MultiAgentSync {
 
     // Copy to all target locations
     for (const target of targets) {
-      // Skip if target is the canonical location
-      if (target === `${canonical}/skills`) {
+      // Skip if target is the canonical location (use resolved paths for robust comparison)
+      if (path.resolve(cwd, target) === path.resolve(cwd, canonical, 'skills')) {
         continue;
       }
 
@@ -174,8 +202,8 @@ export class MultiAgentSync {
 
     // Check each target
     for (const target of targets) {
-      // Skip canonical location
-      if (target === `${canonical}/skills`) {
+      // Skip canonical location (use resolved paths for robust comparison)
+      if (path.resolve(cwd, target) === path.resolve(cwd, canonical, 'skills')) {
         continue;
       }
 
@@ -255,8 +283,16 @@ export class MultiAgentSync {
 
     for (const craftName of craftDirs) {
       const craftPath = path.join(skillsDir, craftName);
-      const result = await this.syncCraft(craftName, craftPath, cwd);
+      const result = await this.syncCraftCore(craftName, craftPath, cwd);
       results.push(result);
+    }
+
+    // Update .gitignore in target directories once after all syncs
+    try {
+      await gitIgnoreManager.autoUpdateTargets(cwd);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Failed to update .gitignore in target directories: ${message}`);
     }
 
     return results;
