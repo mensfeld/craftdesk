@@ -12,6 +12,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { logger } from '../utils/logger';
 import { configManager } from './config-manager';
+import { gitIgnoreManager } from './gitignore-manager';
 import { ensureDir } from '../utils/file-system';
 import type { SyncStatus, SyncResult, SyncLocation } from '../types/multi-agent';
 
@@ -39,6 +40,28 @@ export class MultiAgentSync {
    * ```
    */
   async syncCraft(
+    craftName: string,
+    sourceDir: string,
+    cwd: string = process.cwd()
+  ): Promise<SyncResult> {
+    const result = await this.syncCraftCore(craftName, sourceDir, cwd);
+
+    // Update .gitignore in target directories
+    try {
+      await gitIgnoreManager.autoUpdateTargets(cwd);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Failed to update .gitignore in target directories: ${message}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Core sync logic without gitignore update (used by syncAllCrafts to batch)
+   * @private
+   */
+  private async syncCraftCore(
     craftName: string,
     sourceDir: string,
     cwd: string = process.cwd()
@@ -255,8 +278,16 @@ export class MultiAgentSync {
 
     for (const craftName of craftDirs) {
       const craftPath = path.join(skillsDir, craftName);
-      const result = await this.syncCraft(craftName, craftPath, cwd);
+      const result = await this.syncCraftCore(craftName, craftPath, cwd);
       results.push(result);
+    }
+
+    // Update .gitignore in target directories once after all syncs
+    try {
+      await gitIgnoreManager.autoUpdateTargets(cwd);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Failed to update .gitignore in target directories: ${message}`);
     }
 
     return results;

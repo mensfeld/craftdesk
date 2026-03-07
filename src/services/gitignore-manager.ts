@@ -216,6 +216,44 @@ export class GitIgnoreManager {
 
     await this.updateGitIgnore(skillsDir, managed, embedded, cwd);
   }
+
+  /**
+   * Update .gitignore in all multi-agent target directories
+   *
+   * Creates .gitignore files in each configured target directory (e.g.,
+   * `.cursor/skills/`, `.windsurf/skills/`) mirroring the same managed/embedded
+   * rules from the canonical location. Safe to call when multi-agent is disabled
+   * (no-op).
+   *
+   * @param cwd - Current working directory (defaults to process.cwd())
+   *
+   * @example
+   * ```typescript
+   * // After syncing crafts to target directories:
+   * await gitIgnoreManager.autoUpdateTargets();
+   * ```
+   */
+  async autoUpdateTargets(cwd: string = process.cwd()): Promise<void> {
+    const config = await configManager.getCraftDeskJson();
+
+    if (!config?.multiAgent?.enabled) {
+      return;
+    }
+
+    const canonical = config.multiAgent.canonical || '.claude';
+    const targets = config.multiAgent.targets || [];
+    const managed = await this.getManagedSkills(cwd);
+    const embedded = config?.embedded || [];
+
+    for (const target of targets) {
+      // Skip the canonical location (already handled by autoUpdate)
+      if (target === `${canonical}/skills`) {
+        continue;
+      }
+
+      await this.updateGitIgnore(target, managed, embedded, cwd);
+    }
+  }
 }
 
 // Export singleton instance

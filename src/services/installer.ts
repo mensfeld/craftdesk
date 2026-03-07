@@ -94,6 +94,14 @@ export class Installer {
       // Don't fail installation if .gitignore update fails
       logger.warn('Failed to update .gitignore');
     }
+
+    // Update .gitignore in multi-agent target directories
+    try {
+      await gitIgnoreManager.autoUpdateTargets();
+    } catch {
+      // Don't fail installation if target .gitignore update fails
+      logger.warn('Failed to update .gitignore in target directories');
+    }
   }
 
   /**

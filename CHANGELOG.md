@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.2 (Unreleased)
+
+### Fixed
+- **Sync gitignore**: `craftdesk sync` now creates `.gitignore` files in all multi-agent target directories (`.agents/skills/`, `.cursor/skills/`, `.windsurf/skills/`, etc.), preventing synced managed skills from being accidentally committed to git [#64](https://github.com/mensfeld/craftdesk/issues/64) [#66](https://github.com/mensfeld/craftdesk/issues/66)
+- **Vitest deprecation**: Migrated `poolOptions` to top-level `maxWorkers` option for Vitest 4 compatibility
+
 ## 0.5.1 (2026-02-24)
 
 ### Fixed
