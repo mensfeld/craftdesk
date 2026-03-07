@@ -59,6 +59,11 @@ export class MultiAgentSync {
 
   /**
    * Core sync logic without gitignore update (used by syncAllCrafts to batch)
+   *
+   * @param craftName - Name of the craft to sync
+   * @param sourceDir - Source directory containing the craft files
+   * @param cwd - Current working directory (defaults to process.cwd())
+   * @returns Sync result with success/failure details
    * @private
    */
   private async syncCraftCore(
