@@ -245,9 +245,12 @@ export class GitIgnoreManager {
     const managed = await this.getManagedSkills(cwd);
     const embedded = config?.embedded || [];
 
+    const canonicalSkillsPath = path.resolve(cwd, canonical, 'skills');
+
     for (const target of targets) {
       // Skip the canonical location (already handled by autoUpdate)
-      if (target === `${canonical}/skills`) {
+      const resolvedTarget = path.resolve(cwd, target);
+      if (resolvedTarget === canonicalSkillsPath) {
         continue;
       }
 

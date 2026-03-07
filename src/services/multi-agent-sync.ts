@@ -123,8 +123,8 @@ export class MultiAgentSync {
 
     // Copy to all target locations
     for (const target of targets) {
-      // Skip if target is the canonical location
-      if (target === `${canonical}/skills`) {
+      // Skip if target is the canonical location (use resolved paths for robust comparison)
+      if (path.resolve(cwd, target) === path.resolve(cwd, canonical, 'skills')) {
         continue;
       }
 
@@ -202,8 +202,8 @@ export class MultiAgentSync {
 
     // Check each target
     for (const target of targets) {
-      // Skip canonical location
-      if (target === `${canonical}/skills`) {
+      // Skip canonical location (use resolved paths for robust comparison)
+      if (path.resolve(cwd, target) === path.resolve(cwd, canonical, 'skills')) {
         continue;
       }
 
