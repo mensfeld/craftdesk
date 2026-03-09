@@ -270,7 +270,7 @@ export class Installer {
         const destFile = path.join(craftDir, path.basename(entry.file));
 
         if (await fs.pathExists(sourceFile)) {
-          await fs.copy(sourceFile, destFile, { overwrite: true });
+          await fs.copy(sourceFile, destFile, { overwrite: true, dereference: true });
         } else {
           throw new Error(`File not found: ${entry.file} in ${entry.git}`);
         }
@@ -278,15 +278,26 @@ export class Installer {
         // Copy from subdirectory if specified, otherwise copy entire repo
         const sourcePath = entry.path ? path.join(tempDir, entry.path) : tempDir;
 
-        // Copy contents to craft directory
+        // Copy contents to craft directory, resolving symlinks to real files
+        // so installed skills don't contain dangling symlinks (issue #65)
         const files = await fs.readdir(sourcePath);
         for (const file of files) {
           if (file !== '.tmp-git' && file !== '.git') {
-            await fs.copy(
-              path.join(sourcePath, file),
-              path.join(craftDir, file),
-              { overwrite: true }
-            );
+            const srcPath = path.join(sourcePath, file);
+            const dstPath = path.join(craftDir, file);
+
+            try {
+              await fs.copy(srcPath, dstPath, { overwrite: true, dereference: true });
+            } catch (copyError) {
+              // Handle dangling symlinks gracefully — skip with a warning
+              const stat = await fs.lstat(srcPath).catch(() => null);
+              if (stat?.isSymbolicLink()) {
+                const target = await fs.readlink(srcPath);
+                logger.warn(`Skipping dangling symlink: ${file} -> ${target}`);
+              } else {
+                throw copyError;
+              }
+            }
           }
         }
       }
