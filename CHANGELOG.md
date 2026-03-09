@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.5.2 (Unreleased)
+## 0.5.2 (2026-03-09)
 
 ### Fixed
 - **Sync gitignore**: `craftdesk sync` now creates `.gitignore` files in all multi-agent target directories (`.agents/skills/`, `.cursor/skills/`, `.windsurf/skills/`, etc.), preventing synced managed skills from being accidentally committed to git [#64](https://github.com/mensfeld/craftdesk/issues/64) [#66](https://github.com/mensfeld/craftdesk/issues/66)
