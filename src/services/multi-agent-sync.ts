@@ -71,7 +71,7 @@ export class MultiAgentSync {
     sourceDir: string,
     cwd: string = process.cwd()
   ): Promise<SyncResult> {
-    const config = await configManager.getCraftDeskJson();
+    const config = await configManager.getCraftDeskJson(cwd);
 
     // Check if multi-agent sync is enabled
     if (!config?.multiAgent?.enabled) {
@@ -167,7 +167,7 @@ export class MultiAgentSync {
    * ```
    */
   async verifySync(craftName: string, cwd: string = process.cwd()): Promise<SyncStatus> {
-    const config = await configManager.getCraftDeskJson();
+    const config = await configManager.getCraftDeskJson(cwd);
 
     if (!config?.multiAgent?.enabled) {
       // If multi-agent not enabled, consider everything in sync
@@ -250,7 +250,7 @@ export class MultiAgentSync {
    * @returns Array of sync results for each craft
    */
   async syncAllCrafts(cwd: string = process.cwd()): Promise<SyncResult[]> {
-    const config = await configManager.getCraftDeskJson();
+    const config = await configManager.getCraftDeskJson(cwd);
 
     if (!config?.multiAgent?.enabled) {
       logger.info('Multi-agent sync is disabled');
@@ -305,7 +305,7 @@ export class MultiAgentSync {
    * @returns Array of sync statuses for each craft
    */
   async verifyAllCrafts(cwd: string = process.cwd()): Promise<SyncStatus[]> {
-    const config = await configManager.getCraftDeskJson();
+    const config = await configManager.getCraftDeskJson(cwd);
 
     if (!config?.multiAgent?.enabled) {
       return [];

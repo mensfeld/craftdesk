@@ -31,7 +31,7 @@ interface GlobalConfig {
  * ```
  */
 export class ConfigManager {
-  private craftDeskJson: CraftDeskJson | null = null;
+  private craftDeskJsonCache: Map<string, CraftDeskJson | null> = new Map();
   private globalConfig: GlobalConfig | null = null;
 
   /**
@@ -211,11 +211,12 @@ export class ConfigManager {
   }
 
   /**
-   * Reads and caches the craftdesk.json file from the current working directory
+   * Reads and caches the craftdesk.json file from the specified directory
    *
-   * The file is cached after the first read for performance. Returns null if
-   * the file doesn't exist or contains invalid JSON.
+   * The file is cached per-directory after the first read for performance.
+   * Returns null if the file doesn't exist or contains invalid JSON.
    *
+   * @param cwd - Directory to read craftdesk.json from (defaults to process.cwd())
    * @returns The parsed craftdesk.json content, or null if not found/invalid
    *
    * @example
@@ -226,16 +227,19 @@ export class ConfigManager {
    * }
    * ```
    */
-  async getCraftDeskJson(): Promise<CraftDeskJson | null> {
-    if (this.craftDeskJson) {
-      return this.craftDeskJson;
+  async getCraftDeskJson(cwd?: string): Promise<CraftDeskJson | null> {
+    const resolvedCwd = path.resolve(cwd || process.cwd());
+
+    if (this.craftDeskJsonCache.has(resolvedCwd)) {
+      return this.craftDeskJsonCache.get(resolvedCwd) ?? null;
     }
 
     try {
-      const craftDeskPath = path.join(process.cwd(), 'craftdesk.json');
+      const craftDeskPath = path.join(resolvedCwd, 'craftdesk.json');
       const content = await fs.readFile(craftDeskPath, 'utf-8');
-      this.craftDeskJson = JSON.parse(content);
-      return this.craftDeskJson;
+      const parsed = JSON.parse(content);
+      this.craftDeskJsonCache.set(resolvedCwd, parsed);
+      return parsed;
     } catch {
       return null;
     }
@@ -332,6 +336,14 @@ export class ConfigManager {
   async getStoredUsername(registryUrl: string): Promise<string | null> {
     const config = await this.loadGlobalConfig();
     return config.registries[registryUrl]?.user || null;
+  }
+
+  /**
+   * Clears the cached craftdesk.json data
+   * Useful after external modifications to craftdesk.json
+   */
+  clearCraftDeskJsonCache(): void {
+    this.craftDeskJsonCache.clear();
   }
 
   /**

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.3 (Unreleased)
+
+### Fixed
+- **Config manager**: `getCraftDeskJson()` now accepts an optional `cwd` parameter so multi-agent sync, verify, and gitignore operations read config from the correct directory instead of always using `process.cwd()` [#67 review](https://github.com/mensfeld/craftdesk/pull/67#pullrequestreview-3909525763)
+
 ## 0.5.2 (2026-03-09)
 
 ### Fixed
