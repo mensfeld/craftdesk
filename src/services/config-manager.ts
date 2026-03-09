@@ -339,6 +339,14 @@ export class ConfigManager {
   }
 
   /**
+   * Clears the cached craftdesk.json data
+   * Useful after external modifications to craftdesk.json
+   */
+  clearCraftDeskJsonCache(): void {
+    this.craftDeskJsonCache.clear();
+  }
+
+  /**
    * Clears the cached global config
    * Useful for testing or after external modifications
    */

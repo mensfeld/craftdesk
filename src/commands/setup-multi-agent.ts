@@ -181,7 +181,7 @@ export function createSetupMultiAgentCommand(): Command {
           logger.startSpinner('Syncing existing crafts...');
 
           // Clear config cache to pick up new settings
-          configManager['craftDeskJson'] = null;
+          configManager.clearCraftDeskJsonCache();
 
           const results = await multiAgentSync.syncAllCrafts();
 
