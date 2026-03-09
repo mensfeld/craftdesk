@@ -161,11 +161,14 @@ describe('Embedded Skills Integration', () => {
       const gitignorePath = path.join(tempDir, '.claude', 'skills', '.gitignore');
       const gitignore = await fs.readFile(gitignorePath, 'utf-8');
 
-      // Managed skill should be ignored
+      // Managed skill should be ignored (listed as a gitignore rule)
       expect(gitignore).toContain('managed-skill/');
 
-      // Embedded skill should NOT be ignored
-      expect(gitignore).not.toContain('embedded-skill/');
+      // Embedded skill should be documented as NOT ignored, not as a gitignore rule
+      expect(gitignore).toContain('# NOT ignored: embedded-skill/');
+      // Ensure it's not listed as an actual gitignore pattern (unindented, uncommented line)
+      const ignoreLines = gitignore.split('\n').filter(l => l.trim() === 'embedded-skill/');
+      expect(ignoreLines).toHaveLength(0);
     });
 
     it('should detect orphaned skills after unembedding', async () => {
@@ -226,7 +229,10 @@ describe('Embedded Skills Integration', () => {
       const gitignorePath = path.join(tempDir, '.claude', 'skills', '.gitignore');
       const gitignore = await fs.readFile(gitignorePath, 'utf-8');
       expect(gitignore).toContain('test-skill/');
-      expect(gitignore).not.toContain('my-skill/');
+      // Embedded skill should be documented as NOT ignored, not as a gitignore rule
+      expect(gitignore).toContain('# NOT ignored: my-skill/');
+      const ignoreLines = gitignore.split('\n').filter(l => l.trim() === 'my-skill/');
+      expect(ignoreLines).toHaveLength(0);
     });
   });
 
@@ -303,7 +309,10 @@ describe('Embedded Skills Integration', () => {
 
       const gitignorePath = path.join(tempDir, '.claude', 'skills', '.gitignore');
       const gitignore = await fs.readFile(gitignorePath, 'utf-8');
-      expect(gitignore).not.toContain(`${skillName}/`);
+      // Embedded skill should be documented as NOT ignored, not as a gitignore rule
+      expect(gitignore).toContain(`# NOT ignored: ${skillName}/`);
+      const ignoreLines = gitignore.split('\n').filter(l => l.trim() === `${skillName}/`);
+      expect(ignoreLines).toHaveLength(0);
     });
 
     it('should handle empty project (no lockfile)', async () => {

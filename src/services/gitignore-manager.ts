@@ -207,7 +207,7 @@ export class GitIgnoreManager {
    * @param cwd - Current working directory (defaults to process.cwd())
    */
   async autoUpdate(cwd: string = process.cwd()): Promise<void> {
-    const config = await configManager.getCraftDeskJson();
+    const config = await configManager.getCraftDeskJson(cwd);
     const installPath = configManager.getInstallPath();
     const skillsDir = path.join(installPath, 'skills');
 
@@ -234,7 +234,7 @@ export class GitIgnoreManager {
    * ```
    */
   async autoUpdateTargets(cwd: string = process.cwd()): Promise<void> {
-    const config = await configManager.getCraftDeskJson();
+    const config = await configManager.getCraftDeskJson(cwd);
 
     if (!config?.multiAgent?.enabled) {
       return;

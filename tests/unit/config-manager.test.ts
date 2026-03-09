@@ -224,5 +224,43 @@ describe('ConfigManager', () => {
       const result = await configManager.getCraftDeskJson();
       expect(result).toBeNull();
     });
+
+    it('should read from custom cwd when provided', async () => {
+      const { createTempDir: createSubDir, cleanupTempDir: cleanupSubDir } = await import('../helpers/test-utils');
+      const otherDir = await createSubDir('config-cwd-test-');
+
+      const otherData = {
+        name: 'other-project',
+        version: '2.0.0'
+      };
+
+      await writeJsonFile(path.join(otherDir, 'craftdesk.json'), otherData);
+
+      // Should read from the specified cwd, not process.cwd()
+      const result = await configManager.getCraftDeskJson(otherDir);
+      expect(result).toEqual(otherData);
+
+      await cleanupSubDir(otherDir);
+    });
+
+    it('should cache separately per cwd', async () => {
+      const { createTempDir: createSubDir, cleanupTempDir: cleanupSubDir } = await import('../helpers/test-utils');
+      const otherDir = await createSubDir('config-cwd-cache-test-');
+
+      const localData = { name: 'local-project', version: '1.0.0' };
+      const otherData = { name: 'other-project', version: '2.0.0' };
+
+      await writeJsonFile(path.join(tempDir, 'craftdesk.json'), localData);
+      await writeJsonFile(path.join(otherDir, 'craftdesk.json'), otherData);
+
+      // Read both
+      const localResult = await configManager.getCraftDeskJson();
+      const otherResult = await configManager.getCraftDeskJson(otherDir);
+
+      expect(localResult).toEqual(localData);
+      expect(otherResult).toEqual(otherData);
+
+      await cleanupSubDir(otherDir);
+    });
   });
 });
