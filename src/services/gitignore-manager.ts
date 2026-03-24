@@ -254,7 +254,10 @@ export class GitIgnoreManager {
         continue;
       }
 
-      await this.updateGitIgnore(target, managed, embedded, cwd);
+      // Embedded skills should be gitignored in target directories since they
+      // are synced copies — only the canonical location commits them to git.
+      // See: https://github.com/mensfeld/craftdesk/issues/72
+      await this.updateGitIgnore(target, [...managed, ...embedded], [], cwd);
     }
   }
 }
