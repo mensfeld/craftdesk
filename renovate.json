@@ -23,22 +23,6 @@
       ],
       "groupName": "dev dependencies",
       "commitMessageTopic": "dev dependencies"
-    },
-    {
-      "description": "Group ruby/setup-ruby action with ruby version updates",
-      "matchPackageNames": [
-        "ruby/setup-ruby",
-        "ruby"
-      ],
-      "groupName": "ruby setup",
-      "internalChecksFilter": "strict"
-    },
-    {
-      "description": "Let setup-ruby pass age gate before ruby so it is ready when the group PR is created",
-      "matchPackageNames": [
-        "ruby/setup-ruby"
-      ],
-      "minimumReleaseAge": "5 days"
     }
   ],
   "labels": [
