@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Changed
+- **Dev dependencies**: Upgraded Vitest tooling to v5 (`vitest`, `@vitest/coverage-v8`, `@vitest/ui`) and `eslint-plugin-jsdoc` to v64.
+- **TypeScript**: Upgraded to v6. Dropped the deprecated `moduleResolution: "node"` from `tsconfig.json` (removed in the TypeScript 6/7 line). Stopped short of v7 because `@typescript-eslint` does not yet support the TypeScript 7 API ([typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)); v6 ships the same language features while keeping `eslint` and `typedoc` working.
+
 ## 0.5.3 (2026-04-09)
 
 ### Fixed
