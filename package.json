@@ -64,7 +64,7 @@
     "eslint": "^10.0.0",
     "eslint-plugin-jsdoc": "^64.0.0",
     "typedoc": "^0.28.14",
-    "typescript": "^6.0.0",
+    "typescript": "^7.0.0",
     "vitest": "^5.0.0"
   },
   "engines": {
