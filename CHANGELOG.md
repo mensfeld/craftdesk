@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.5.4 (2026-11-10)
 
 ### Changed
+- **Dependencies**: Upgraded `commander` to v15 and `adm-zip` to v0.6 (lock file now resolves `adm-zip` 0.6.1). Refreshed `axios` (1.21.0) and `fs-extra` (11.4.1) to their latest releases. No CLI behavior changes.
 - **Dev dependencies**: Upgraded Vitest tooling to v5 (`vitest`, `@vitest/coverage-v8`, `@vitest/ui`) and `eslint-plugin-jsdoc` to v65.
 - **TypeScript**: Upgraded to v6. Dropped the deprecated `moduleResolution: "node"` from `tsconfig.json` (removed in the TypeScript 6/7 line). Stopped short of v7 because `@typescript-eslint` and `typedoc` do not yet support the TypeScript 7 API ([typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)); v6 ships the same language features while keeping `eslint` and `typedoc` working.
 
