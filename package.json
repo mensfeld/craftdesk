@@ -1,6 +1,6 @@
 {
   "name": "craftdesk",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Package manager for Claude Code skills, agents, commands, hooks, and plugins",
   "main": "dist/index.js",
   "bin": {
