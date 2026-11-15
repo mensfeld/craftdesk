@@ -25,6 +25,13 @@
       "commitMessageTopic": "dev dependencies"
     },
     {
+      "description": "Hold TypeScript below 7: @typescript-eslint and typedoc peer ranges do not accept TS 7 yet",
+      "matchPackageNames": [
+        "typescript"
+      ],
+      "allowedVersions": "<7"
+    },
+    {
       "description": "Major updates stay manual",
       "matchUpdateTypes": [
         "major"
